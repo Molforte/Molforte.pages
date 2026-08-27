@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Molforte 的个人博客" />
+  <title>Molforte · 主页</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <button class="toggle" id="themeToggle" type="button">主题</button>
+
+  <main class="wrap">
+    <!-- 主页：大标题 + 细线 + 个人介绍 README（标题自动降级） -->
+    <section class="sec" id="home">
+      <h1 class="sec-title">主页</h1>
+      <div class="sec-intro" id="intro">
+        <p class="muted">正在读取 intro.md……</p>
+      </div>
+    </section>
+
+    <!-- 内容：大标题 + 细线 + 最近(卡片×5可翻页) / 项目(卡片×3可翻页) -->
+    <section class="sec" id="content">
+      <h1 class="sec-title">内容</h1>
+
+      <h2 class="sub-title">最近</h2>
+      <div id="recent-cards" class="cards"></div>
+      <nav class="pager" id="recent-pager" hidden></nav>
+
+      <h2 class="sub-title">项目</h2>
+      <div id="project-cards" class="cards"></div>
+      <nav class="pager" id="project-pager" hidden></nav>
+    </section>
+
+    <!-- 友链：大标题 + 细线 + 友链 README + 友链列表 -->
+    <section class="sec" id="friends">
+      <h1 class="sec-title">友链</h1>
+      <div class="sec-intro" id="friends-intro">
+        <p class="muted">正在读取 friends.md……</p>
+      </div>
+      <ul class="friends-list" id="friends-list"></ul>
+    </section>
+  </main>
+
+  <script src="js/marked.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
