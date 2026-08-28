@@ -42,7 +42,6 @@ overlay.className = 'overlay';
 overlay.innerHTML = `
   <div class="window">
     <div class="window-bar">
-      <span class="w-back" data-act="back" role="button" title="返回">‹</span>
       <div class="lights">
         <span class="light r" data-act="close" title="关闭" role="button"></span>
         <span class="light y" data-act="min" title="最小化" role="button"></span>
@@ -75,7 +74,6 @@ async function openArticle(md) {
   if (window.matchMedia('(max-width: 720px)').matches) winEl.classList.add('max');
 }
 overlay.querySelector('[data-act="close"]').addEventListener('click', closeArticle);
-overlay.querySelector('[data-act="back"]').addEventListener('click', closeArticle);
 overlay.querySelector('[data-act="max"]').addEventListener('click', () => winEl.classList.toggle('max'));
 overlay.addEventListener('click', (e) => { if (e.target === overlay) closeArticle(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeArticle(); });
