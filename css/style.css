@@ -30,6 +30,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.4s ease, color 0.4s ease;
 }
 
@@ -44,7 +45,7 @@ body {
 /* 大标题 + 细线 */
 .sec { padding-bottom: 3rem; }
 .sec-title {
-  font-size: clamp(2rem, 5vw, 2.6rem);
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -117,17 +118,19 @@ body {
 .item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
 
 /* 分页器：细线分段（当前橙、其余白），非按钮；悬停分段显示跟随鼠标的页号标签 */
-.pager { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding-top: 26px; }
+.pager { display: flex; align-items: center; gap: 12px; margin-top: 20px; padding-top: 30px; }
 .pager .p-arrow {
   color: var(--sub); font-size: 20px; line-height: 1;
-  padding: 2px 6px; cursor: pointer; user-select: none; transition: color 0.2s ease;
+  padding: 10px 12px; cursor: pointer; user-select: none; transition: color 0.2s ease;
 }
 .pager .p-arrow:hover { color: var(--accent); }
 .pager .p-arrow.disabled { color: var(--line); cursor: default; }
 .pager .p-track { position: relative; display: flex; flex: 1; gap: 4px; align-items: center; }
-.pager .p-seg { position: relative; flex: 1; height: 3px; border-radius: 2px; background: var(--card); cursor: pointer; transition: background 0.2s ease; }
-.pager .p-seg.cur { background: var(--accent); }
-.pager .p-num { position: absolute; bottom: 8px; transform: translateX(-50%); font-size: 13px; color: var(--text); font-weight: 600; }
+.pager .p-seg { position: relative; flex: 1; height: 28px; background: transparent; cursor: pointer; }
+.pager .p-seg::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 100%; height: 3px; border-radius: 2px; background: var(--card); transition: background 0.2s ease; }
+.pager .p-seg.cur::before { background: var(--accent); }
+.pager .p-seg:not(.cur):hover::before { background: var(--hover-fill); }
+.pager .p-num { position: absolute; bottom: calc(50% + 5px); transform: translateX(-50%); font-size: 13px; color: var(--text); font-weight: 600; }
 
 /* 悬浮标签（跟随鼠标） */
 .tip {
@@ -211,6 +214,12 @@ body.dark .tip { background: rgba(245, 245, 247, 0.94); color: #1D1D1F; }
 /* 窄屏 */
 @media (max-width: 720px) {
   .wrap { max-width: 100%; }
+  .overlay { padding: 26px 16px; }
+  .window { width: calc(100vw - 32px); max-height: calc(100vh - 52px); }
+  .window.max { width: calc(100vw - 32px); height: calc(100vh - 52px); }
+  .window-body { padding: 18px 18px 26px; }
+  .light { width: 15px; height: 15px; }
+  .toggle { padding: 8px 18px; }
 }
 @media (max-width: 420px) {
   .item-title { font-size: 19px; }

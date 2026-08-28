@@ -21,5 +21,5 @@ const PROJECTS = [
 
 // 友链（· Name 列表，Name 为链接）
 const FRIENDS = [
-  { name: 'Twisuki', url: 'https://blog.twis.uk/' },
+  { name: 'Twisuki', url: 'https://www.twis.uk/' },
 ];
