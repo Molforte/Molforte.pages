@@ -71,6 +71,8 @@ async function openArticle(md) {
   overlay.classList.add('is-open');
   document.body.style.overflow = 'hidden';
   history.pushState({ article: true }, '');
+  // 手机端取消预览窗：打开即整页
+  if (window.matchMedia('(max-width: 720px)').matches) winEl.classList.add('max');
 }
 overlay.querySelector('[data-act="close"]').addEventListener('click', closeArticle);
 overlay.querySelector('[data-act="back"]').addEventListener('click', closeArticle);
