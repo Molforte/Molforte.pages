@@ -172,13 +172,12 @@ body.dark .tip { background: rgba(245, 245, 247, 0.94); color: #1D1D1F; }
 .light {
   display: inline-flex; align-items: center; justify-content: center;
   position: relative; width: 13px; height: 13px; border-radius: 50%; cursor: pointer;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 0 1px rgba(0, 0, 0, 0.25);
   transition: filter 0.15s ease;
 }
-.light:hover { filter: brightness(1.06); }
-.light.r { background: radial-gradient(circle at 35% 30%, #ff9a92, #ff5f57 60%, #e0443c); }
-.light.y { background: radial-gradient(circle at 35% 30%, #ffd47a, #febc2e 60%, #dea11b); }
-.light.g { background: radial-gradient(circle at 35% 30%, #74e586, #28c840 60%, #1da33c); }
+.light:hover { filter: brightness(0.95); }
+.light.r { background: #ff5f57; }
+.light.y { background: #febc2e; }
+.light.g { background: #28c840; }
 .light::after {
   content: ''; opacity: 0; font-size: 10px; font-weight: 700; line-height: 1;
   color: rgba(0, 0, 0, 0.55); transition: opacity 0.15s ease;
