@@ -13,6 +13,7 @@ const RECENT = [
 
 // 项目（每页展示 3 个，超过自动翻页）
 const PROJECTS = [
+  { title: '电子元器件零基础入门', cat: '成套笔记', url: '#', md: 'notes/电子元器件零基础入门/README.md' },
   { title: '占位项目 1', cat: '项目', url: 'posts/placeholder-7.md', md: 'posts/placeholder-7.md' },
   { title: '占位项目 2', cat: '项目', url: 'posts/placeholder-8.md', md: 'posts/placeholder-8.md' },
   { title: '占位项目 3', cat: '项目', url: 'posts/placeholder-9.md', md: 'posts/placeholder-9.md' },

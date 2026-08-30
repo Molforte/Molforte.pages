@@ -58,13 +58,46 @@ function closeArticle() {
   overlay.classList.remove('is-open');
   document.body.style.overflow = '';
 }
-async function openArticle(md) {
+/* Obisidian 笔记 → 标准 markdown：![[图]]→![]; [[链接]]→[](); 去掉 $ 包裹 */
+function convertObsidian(text) {
+  return text
+    .replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (m, name) => {
+      name = name.trim();
+      const p = name.includes('/') ? name : 'img/' + name;
+      return `![](${p})`;
+    })
+    .replace(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (m, name) => `[${name.trim()}](${name.trim()})`)
+    .replace(/\$\$?/g, '');
+}
+/* 相对图片路径补上所在目录（否则窗口里 404） */
+function absolutizeImages(html, base) {
+  return html.replace(/<img([^>]*?)src="([^"]*)"([^>]*?)>/g, (m, pre, src, post) => {
+    if (/^(https?:|data:|#|\/)/.test(src)) return m;
+    return `<img${pre}src="${base}${src}"${post}>`;
+  });
+}
+async function renderArticle(md) {
+  const res = await fetch(md);
+  if (!res.ok) throw new Error(res.status);
+  const text = convertObsidian(await res.text());
+  const base = md.includes('/') ? md.slice(0, md.lastIndexOf('/') + 1) : '';
+  return absolutizeImages(marked.parse(text), base);
+}
+async function openArticle(md, parentMd) {
   if (!md) return;
+  winBody.dataset.base = md.includes('/') ? md.slice(0, md.lastIndexOf('/') + 1) : '';
+  winBody.dataset.current = md;
   try {
-    const res = await fetch(md);
-    if (!res.ok) throw new Error(res.status);
-    winBody.innerHTML = marked.parse(await res.text());
-  } catch (e) {
+    const content = await renderArticle(md);
+    const back = parentMd ? `<a class="back-link" href="#" data-parent="${esc(parentMd)}">← 返回目录</a>` : '';
+    winBody.innerHTML = back + content;
+    if (parentMd) {
+      winBody.querySelector('.back-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        openArticle(parentMd);
+      });
+    }
+  } catch (e2) {
     winBody.innerHTML = '<p class="muted">文章加载失败。</p>';
   }
   overlay.classList.add('is-open');
@@ -73,6 +106,19 @@ async function openArticle(md) {
   // 手机端取消预览窗：打开即整页
   if (window.matchMedia('(max-width: 720px)').matches) winEl.classList.add('max');
 }
+
+/* 窗口内 .md 链接（含 README 目录）→ 打开对应章节 */
+winBody.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href]');
+  if (!a || a.classList.contains('back-link')) return;
+  const href = a.getAttribute('href');
+  if (href && href.endsWith('.md')) {
+    e.preventDefault();
+    const base = winBody.dataset.base || '';
+    const full = /^(https?:|\/)/.test(href) ? href : base + href;
+    openArticle(full, winBody.dataset.current || null);
+  }
+});
 overlay.querySelector('[data-act="close"]').addEventListener('click', closeArticle);
 overlay.querySelector('[data-act="max"]').addEventListener('click', () => winEl.classList.toggle('max'));
 overlay.addEventListener('click', (e) => { if (e.target === overlay) closeArticle(); });
