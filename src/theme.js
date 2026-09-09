@@ -8,7 +8,7 @@ const prefersDark = () =>
 function apply(theme) {
   document.documentElement.dataset.theme = theme
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.content = theme === 'dark' ? '#101014' : '#ffffff'
+  if (meta) meta.content = theme === 'dark' ? '#000000' : '#ffffff'
 }
 
 /** 应用初始主题（存值优先，否则跟随系统），并监听系统变化 */
