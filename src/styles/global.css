@@ -40,6 +40,8 @@
 html {
   font-size: 17px;
   -webkit-text-size-adjust: 100%;
+  /* 始终预留滚动条槽位：长短页面切换时视口宽度不变，内容/岛不会横跳 */
+  scrollbar-gutter: stable;
 }
 
 body {
