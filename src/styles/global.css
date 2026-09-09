@@ -903,80 +903,169 @@ a {
 }
 
 /* ============================================================
-   归档页（按项目分组）
+   归档页：顶部大卡片（hero） + 按项目分组的精致卡片列表
    ============================================================ */
 .archive {
   padding-top: clamp(2.4rem, 9vh, 5rem);
 }
 
-.archive__title {
+/* —— 巨大的卡片（页面感 hero） —— */
+.archive-hero {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  border: 1px solid rgba(29, 29, 31, 0.07);
+  border-radius: 18px;
+  padding: 2rem 2.2rem 2.1rem;
+  margin-bottom: 2.6rem;
+  box-shadow:
+    0 1px 2px rgba(29, 29, 31, 0.03),
+    0 12px 32px rgba(29, 29, 31, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.archive-hero__title {
   margin: 0;
-  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
-.archive__note {
-  margin: 0.9rem 0 2.6rem;
+.archive-hero__desc {
+  margin: 0.7rem 0 0;
   color: var(--text-2);
   font-size: 0.98rem;
 }
 
-.project-group + .project-group {
-  margin-top: 3rem;
-}
-
-.project-group__name {
-  margin: 0 0 0.2rem;
-  font-size: 1.22rem;
-  font-weight: 600;
-}
-
-.project-group__count {
-  font-size: 0.85rem;
-  color: var(--text-3);
-  font-weight: 400;
-  margin-left: 0.7em;
-}
-
-.archive-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--hairline);
-}
-
-.archive-item {
+.archive-hero__stats {
   display: flex;
-  align-items: baseline;
-  gap: 1.4rem;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--hairline);
+  flex-wrap: wrap;
+  gap: 2.4rem;
+  margin: 1.7rem 0 0;
 }
 
-.archive-item time {
-  flex: none;
-  width: 6.5rem;
+.archive-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.archive-stat dt {
+  font-size: 0.78rem;
   color: var(--text-3);
-  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
+.archive-stat dd {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
-.archive-item a {
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s ease;
+/* —— 每个项目一张大卡片（含标题与条目） —— */
+.archive-group-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  border: 1px solid rgba(29, 29, 31, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(29, 29, 31, 0.03),
+    0 8px 24px rgba(29, 29, 31, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.archive-item a:hover {
+.archive-group-card + .archive-group-card {
+  margin-top: 2rem;
+}
+
+.archive-group-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 1.2rem 1.4rem 1.1rem;
+}
+
+.archive-group-card__name {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+.archive-group-card__count {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+/* —— 卡内条目行（无分隔线，靠行距与悬停区分） —— */
+.archive-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.archive-row__link {
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+  padding: 1.05rem 1.4rem;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.archive-row__link:hover {
+  background: rgba(29, 29, 31, 0.035);
+}
+
+.archive-row__date {
+  flex: none;
+  width: 6.5rem;
+  color: var(--text-3);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.archive-row__title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: color 0.16s ease;
+}
+
+.archive-row__link:hover .archive-row__title {
   color: var(--link);
 }
 
+.archive-row__meta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-3);
+  font-size: 0.78rem;
+}
+
+.archive-row__tag {
+  background: rgba(29, 29, 31, 0.05);
+  color: var(--text-2);
+  border-radius: 6px;
+  padding: 0.14em 0.55em;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.archive-row__link:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+
 .archive-empty {
-  padding: 2.6rem 0;
-  border-top: 1px solid var(--hairline);
+  padding: 2.4rem 0;
   color: var(--text-2);
 }
 
@@ -1110,12 +1199,21 @@ a {
     padding-top: 2.6rem;
   }
 
-  .archive-item {
-    gap: 0.9rem;
+  .archive-row__link {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
   }
 
-  .archive-item time {
+  .archive-row__date {
     width: auto;
+  }
+
+  .archive-row__title {
+    flex: 1 1 70%;
+  }
+
+  .archive-row__meta {
+    flex-basis: 100%;
   }
 
   .post__pager {
