@@ -274,11 +274,11 @@ a {
   }
 }
 
-/* —— 搜索副岛：独立小圆岛，与主岛垂直居中对齐 —— */
+/* —— 搜索副岛：明显小于主岛的小圆岛，与主岛垂直居中对齐 —— */
 .search-island {
   position: relative;
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 2.6rem;
+  height: 2.6rem;
   flex: none;
   display: grid;
   place-items: center;
@@ -307,8 +307,8 @@ a {
 }
 
 .search-island svg {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* —— 搜索浮层 —— */
@@ -1002,13 +1002,13 @@ a {
   }
 
   .search-island {
-    width: 2.95rem;
-    height: 2.95rem;
+    width: 2.3rem;
+    height: 2.3rem;
   }
 
   .search-island svg {
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1.05rem;
+    height: 1.05rem;
   }
 }
 
