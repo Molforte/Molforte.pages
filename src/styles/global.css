@@ -509,7 +509,7 @@ a {
   color: var(--link);
 }
 
-/* 摘要弹性占满剩余高度：内容多则填满整卡，超出省略 */
+/* 摘要固定为整数行：到第 3 行即省略，避免文字多了后最后一行被切一半 */
 .post-card__summary {
   flex: 1 1 auto;
   margin: 0.4rem 0 0;
@@ -517,7 +517,7 @@ a {
   font-size: 0.9rem;
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 12;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
