@@ -31,9 +31,18 @@ async function audit(name, url, vw, vh) {
         glass: cs(bar, 'backdropFilter') || cs(bar, '-webkit-backdrop-filter'),
         background: cs(bar, 'backgroundColor'),
       } : null,
-      active: bar ? {
+      active: bar && rect ? {
         label: document.querySelector('.apptabbar__tab.is-active')?.textContent?.trim() || null,
-        iconBubbleBg: activeWrap ? cs(activeWrap, 'backgroundColor') : null, // 应为深色 rgb(29,29,31)
+        // 选中大胶囊宽度占岛宽比例（期望 ≈ 1/4）
+        segmentRatio: (() => {
+          const el = document.querySelector('.apptabbar__tab.is-active')
+          if (!el) return null
+          return +(el.getBoundingClientRect().width / rect.width).toFixed(3)
+        })(),
+        segmentBg: (() => {
+          const el = document.querySelector('.apptabbar__tab.is-active')
+          return el ? getComputedStyle(el).backgroundColor : null
+        })(),
       } : null,
       frameW: Math.round(document.querySelector('.site-frame')?.getBoundingClientRect().width || 0),
       h1: document.querySelector('h1, .post__title, .page__title')?.textContent?.trim() || null,
