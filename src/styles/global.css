@@ -1008,7 +1008,7 @@ a {
 .archive-row__link {
   display: flex;
   align-items: center;
-  gap: 1.3rem;
+  gap: 1.1rem;
   padding: 1.05rem 1.4rem;
   color: var(--text);
   text-decoration: none;
@@ -1022,7 +1022,6 @@ a {
 
 .archive-row__date {
   flex: none;
-  width: 6.5rem;
   color: var(--text-3);
   font-size: 0.84rem;
   font-variant-numeric: tabular-nums;
