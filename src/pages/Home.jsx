@@ -22,15 +22,20 @@ export default function Home() {
               <h2 className="post-card__title">{post.title}</h2>
               <p className="post-card__summary">{post.summary}</p>
               <p className="post-card__meta">
-                <time dateTime={post.date}>{formatDate(post.date)}</time>
-                {post.tags.length > 0 && (
-                  <>
-                    <span className="sep">·</span>
-                    <span>{post.tags.join(' · ')}</span>
-                  </>
-                )}
-                <span className="sep">·</span>
-                <span>约 {readingMinutes(post.content)} 分钟</span>
+                <time className="post-card__date" dateTime={post.date}>
+                  {formatDate(post.date)}
+                </time>
+                {post.tags.map((tag) => (
+                  <span className="post-card__tag" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+                <span className="post-card__read">
+                  约 {readingMinutes(post.content)} 分钟
+                </span>
+                <span className="post-card__arrow" aria-hidden="true">
+                  →
+                </span>
               </p>
             </Link>
           </li>
