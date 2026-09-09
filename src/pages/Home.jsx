@@ -9,7 +9,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="col">
+    <>
       <header className="masthead">
         <h1 className="masthead__title">{SITE.title}</h1>
         <p className="masthead__tagline">{SITE.tagline}</p>
@@ -23,13 +23,19 @@ export default function Home() {
             </h2>
             <p className="post-item__meta">
               <time dateTime={post.date}>{formatDate(post.date)}</time>
-              <span className="sep">·</span>
-              {post.tags.length > 0 && (
+              {post.project && (
                 <>
-                  <span>{post.tags.join(' · ')}</span>
                   <span className="sep">·</span>
+                  <span>{post.project}</span>
                 </>
               )}
+              {post.tags.length > 0 && (
+                <>
+                  <span className="sep">·</span>
+                  <span>{post.tags.join(' · ')}</span>
+                </>
+              )}
+              <span className="sep">·</span>
               <span>阅读约 {readingMinutes(post.content)} 分钟</span>
             </p>
           </li>
@@ -40,9 +46,9 @@ export default function Home() {
         <p className="home-foot">还没有文章。往 content/ 里放一篇 Markdown 就有了。</p>
       )}
 
-      <p className="home-foot">
-        共 {posts.length} 篇文章 · 按时间倒序
-      </p>
-    </div>
+      {posts.length > 0 && (
+        <p className="home-foot">共 {posts.length} 篇文章 · 按时间倒序</p>
+      )}
+    </>
   )
 }

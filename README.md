@@ -1,10 +1,11 @@
 # 札记 · Molforte
 
-个人博客，部署在 GitHub Pages。**没有顶栏**——首页与文章页的第一屏都是内容本身，
-导航只出现在两处：正文末尾的「较新的文章 / 较旧的文章」，以及页脚。
+个人博客，部署在 GitHub Pages。**没有顶栏**——页面顶部没有常驻导航条。
+导航在左侧栏（大屏常驻；窄屏时堆到页面顶部，不常驻）：**主页 / 归档 / 友链 / 关于**，
+正文末尾另有「较新的文章 / 较旧的文章」。
 
-风格取向是克制的苹果式简洁：白底、系统无衬线、发丝线分隔、大量留白，
-全部视觉 token 集中在一份 CSS 里，改起来很容易。
+风格取向是克制的苹果式简洁：白底、系统无衬线、发丝线分隔、大量留白；
+大屏内容栏约取整页 60% 宽。全部视觉 token 集中在一份 CSS 里，改起来很容易。
 
 ## 技术栈
 
@@ -17,6 +18,7 @@
 
 ```text
 content/                # 所有文章，一篇一个 .md
+content/pages/          # 静态单页：about.md（关于）、friends.md（友链）…
 .github/workflows/      # GitHub Actions：push 到 main 自动构建并部署 Pages
 public/favicon.svg
 scripts/
@@ -24,10 +26,11 @@ scripts/
   qa-shots.mjs / qa-audit.mjs   # 可选：无头 Edge 渲染审计
 src/
   site.js               # 站点设置（标题、署名、导语……）
-  lib/content.js        # 读 content/、解析 frontmatter、排序
-  lib/markdown.js       # Markdown -> HTML
+  lib/content.js        # 读 content/、解析 frontmatter、排序、按项目分组
+  lib/markdown.js       # Markdown -> HTML（站外链接新开页）
   lib/highlight.js      # 按需注册的语言
-  pages/                # Home / Post / NotFound
+  components/           # Sidebar（侧栏导航）/ Footer
+  pages/                # Home / Archive / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
 vite.config.js          # base 路径与 404.html 回退插件
@@ -78,10 +81,22 @@ frontmatter 字段说明（约定单行书写）：
 | --- | --- |
 | title | 标题，必填 |
 | date | `YYYY-MM-DD`；缺省用文件名里的日期 |
+| project | 项目名（可选）；归档页按它分组 |
 | tags | `[a, b]` 数组 |
 | summary | 摘要；缺省自动取正文第一段 |
 | slug | 覆盖 URL 中的 slug；缺省用文件名 |
 | draft | `true` 时不出现在站点上 |
+
+## 路由
+
+| 路径 | 页面 |
+| --- | --- |
+| `/` | 主页（文章列表） |
+| `/archive` | 归档（按 project 字段分组） |
+| `/friends` | 友链（编辑 `content/pages/friends.md`） |
+| `/about` | 关于（编辑 `content/pages/about.md`） |
+| `/post/:slug` | 单篇文章 |
+| 其它 | 404 |
 
 ## 站点配置
 
@@ -114,10 +129,17 @@ frontmatter 字段说明（约定单行书写）：
 `404.html`，刷新 `/post/xxx` 时 GitHub 返回 `404.html`，应用启动后由
 React Router 根据真实 URL 渲染对应文章。这是 GitHub Pages 上 SPA 的标准做法。
 
+## 布局与定制
+
+- 大屏（≥1080px）：左侧常驻侧栏 + 约 60% 视口宽的内容栏；
+- 窄屏：侧栏平铺到页面顶部（不常驻、不是顶栏）；
+- 想调内容栏宽度：改 `src/styles/global.css` 顶部的 `--measure-list`；
+- 想调断点：改同一处的 `--bp-stack`。
+
 ## 已知取舍
 
 - 没有深色模式、目录、站内搜索、RSS——按“功能贴近上下文、不为不存在而存在”
-  的原则，等真正需要再加（它们会加在正文/页脚附近，而不是重新长出一条顶栏）。
+  的原则，等真正需要再加（它们会加在正文/侧栏附近，而不是重新长出一条顶栏）。
 - 手机上只是同一份内容的自适应，没有单独的移动端导航。
 
 ## 免责网络备注

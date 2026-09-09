@@ -14,32 +14,40 @@ async function audit(name, url, vw, vh) {
       const el = document.querySelector(sel)
       return el ? getComputedStyle(el)[prop] : null
     }
-    const fixed = [...document.querySelectorAll('body *')].filter(
-      (el) => getComputedStyle(el).position === 'fixed' || getComputedStyle(el).position === 'sticky',
-    ).length
+    // 允许侧栏自身 sticky；除此之外不允许任何 fixed/sticky（无顶栏）
+    const sticky = [...document.querySelectorAll('body *')].filter((el) => {
+      const p = getComputedStyle(el).position
+      return (p === 'fixed' || p === 'sticky') && !el.classList.contains('sidebar')
+    }).length
+    const sidebar = document.querySelector('.sidebar')
+    const list = document.querySelector('.post-index, .archive, .static-page, .post')
+    const rect = list ? list.getBoundingClientRect() : null
     return {
-      fixedOrSticky: fixed,
+      unexpectedFixedSticky: sticky,
+      sidebarVisible: !!sidebar && getComputedStyle(sidebar).display !== 'none',
+      sidebarSticky: sidebar ? getComputedStyle(sidebar).position : null,
+      mainW: rect ? Math.round(rect.width) : null,
+      mainRatio: rect ? +(rect.width / window.innerWidth).toFixed(3) : null,
+      navItems: document.querySelectorAll('.sidebar__link').length,
+      activeNav: document.querySelector('.sidebar__link.is-active')?.textContent || null,
       bodyBg: cs('body', 'backgroundColor'),
-      bodyFont: cs('body', 'fontFamily').split(',')[0],
-      mastheadSize: cs('.masthead__title', 'fontSize'),
-      mastheadWeight: cs('.masthead__title', 'fontWeight'),
-      mastheadColor: cs('.masthead__title', 'color'),
-      listItems: document.querySelectorAll('.post-item').length,
-      dateText: document.querySelector('.post-item time')?.textContent || null,
-      linkColor: cs('.post-item__title a', 'color'),
+      h1: document.querySelector('h1, .post__title, .page__title')?.textContent?.trim() || null,
       hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      footerLine: document.querySelector('.site-footer__line')?.textContent?.slice(0, 40) || null,
       codeBlocks: document.querySelectorAll('.post-body pre').length,
-      highlighted: document.querySelectorAll('.post-body .hljs-keyword, .post-body .hljs-string').length,
-      footerNav: document.querySelectorAll('.site-footer__nav a').length,
     }
   })
   console.log(`[${name}]`, JSON.stringify(r))
   await page.close()
 }
 
-await audit('home-desktop', `${BASE}/`, 1280, 900)
+await audit('home-desktop', `${BASE}/`, 1366, 900)
+await audit('home-tablet-1000', `${BASE}/`, 1000, 900)
 await audit('home-mobile', `${BASE}/`, 390, 844)
-await audit('post-tech', `${BASE}/post/how-this-site-is-built`, 1280, 900)
-await audit('post-essay', `${BASE}/post/why-no-topbar`, 390, 844)
+await audit('archive-desktop', `${BASE}/archive`, 1366, 900)
+await audit('about-desktop', `${BASE}/about`, 1366, 900)
+await audit('friends-mobile', `${BASE}/friends`, 390, 844)
+await audit('post-tech', `${BASE}/post/how-this-site-is-built`, 1366, 900)
+await audit('fallback-404', `${BASE}/post/does-not-exist`, 1366, 900)
 await browser.close()
 console.log('audit done')

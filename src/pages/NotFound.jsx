@@ -8,11 +8,11 @@ export default function NotFound() {
   }, [])
 
   return (
-    <div className="col notfound">
+    <div className="notfound">
       <p className="notfound__code">404</p>
       <p className="notfound__text">没有这篇文章，或者地址写错了。</p>
       <Link className="notfound__back" to="/">
-        回到全部文章
+        回到主页
       </Link>
     </div>
   )

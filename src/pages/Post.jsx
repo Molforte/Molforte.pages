@@ -64,7 +64,7 @@ export default function Post() {
   const minutes = readingMinutes(post.content)
 
   return (
-    <article className="col col--post post">
+    <article className="post">
       <Link className="post__back" to="/">
         全部文章
       </Link>

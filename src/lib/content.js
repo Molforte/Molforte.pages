@@ -1,7 +1,7 @@
 // ============================================================
 // 内容管线
 // content/*.md 一篇一文件，文件名建议 YYYY-MM-DD-english-slug.md。
-// frontmatter 支持：title / date / tags / summary / slug / draft
+// frontmatter 支持：title / date / project / tags / summary / slug / draft
 // 文件名里的日期与 slug 是兜底，frontmatter 优先。
 // ============================================================
 
@@ -15,11 +15,19 @@ const modules = import.meta.glob('../../content/*.md', {
 
 const FILE_RE = /^(\d{4}-\d{2}-\d{2})-([\w-]+)\.md$/
 
+// 静态单页（关于 / 友链…）：content/pages/*.md，与文章同语法
+const pageModules = import.meta.glob('../../content/pages/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+})
+
 /**
  * 极简 frontmatter 解析（够用就好，不引依赖）。
  * 约定：frontmatter 在文件头部 --- 之间，字段单行书写：
  *   title: 标题
  *   date: 2026-09-08
+ *   project: 某项目    （用于归档页按项目分组）
  *   tags: [随笔, 界面]
  *   draft: false
  * 字符串值两端的引号会被剥掉；[a, b] 会被拆成数组。
@@ -70,6 +78,7 @@ function parseFile(path, raw) {
     title: data.title || (m ? m[2] : base.replace(/\.md$/, '')),
     date: data.date ? String(data.date).slice(0, 10) : m?.[1] || '',
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    project: data.project ? String(data.project) : '',
     summary: data.summary || firstParagraph(content),
     draft: Boolean(data.draft),
     content, // 原始 Markdown，正文页再渲染成 HTML
@@ -83,6 +92,34 @@ export const posts = Object.entries(modules)
 
 export function getPostBySlug(slug) {
   return posts.find((p) => p.slug === slug) || null
+}
+
+/** 静态单页：按文件名（不含 .md）取 content/pages/ 下的页面 */
+export function getPage(name) {
+  for (const [path, raw] of Object.entries(pageModules)) {
+    if (path.split('/').pop().replace(/\.md$/, '') === name) {
+      return parseFile(path, raw)
+    }
+  }
+  return null
+}
+
+/** 按项目分组归档（frontmatter 的 project 字段） */
+export function groupByProject() {
+  const groups = new Map() // project -> posts[]
+  for (const post of posts) {
+    const key = post.project || '未分类'
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(post)
+  }
+  // 组内已按时间倒序；组按“最近一篇文章”的新旧排序，未分类放最后
+  return [...groups.entries()]
+    .map(([name, items]) => ({ name, items }))
+    .sort((a, b) => {
+      if (a.name === '未分类') return 1
+      if (b.name === '未分类') return -1
+      return b.items[0].date.localeCompare(a.items[0].date)
+    })
 }
 
 /** 相邻文章：left = 更新的一篇，right = 更旧的一篇 */

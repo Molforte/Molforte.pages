@@ -2,7 +2,10 @@ import { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Post from './pages/Post.jsx'
+import Archive from './pages/Archive.jsx'
+import StaticPage from './pages/StaticPage.jsx'
 import NotFound from './pages/NotFound.jsx'
+import Sidebar from './components/Sidebar.jsx'
 import Footer from './components/Footer.jsx'
 
 /** 路由切换时回到顶部 */
@@ -16,16 +19,22 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <>
-      <ScrollToTop />
-      <main className="site-main">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/post/:slug" element={<Post />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Footer />
-    </>
+    <div className="layout">
+      <Sidebar />
+      <div className="layout-main">
+        <main className="site-main">
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/friends" element={<StaticPage slug="friends" />} />
+            <Route path="/about" element={<StaticPage slug="about" />} />
+            <Route path="/post/:slug" element={<Post />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </div>
   )
 }
