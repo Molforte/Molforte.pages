@@ -28,6 +28,8 @@
   /* 布局：全站统一内容宽度（比之前更宽、不追 60%） */
   --measure: min(76vw, 60rem); /* 所有页面共用；超宽屏封顶 60rem */
   --measure-phone: 46rem; /* 小屏回退宽度 */
+  /* 底部功能区：主岛高度 = 搜索副岛直径（两者共用，保证等大） */
+  --dock-h: 3.96rem;
 }
 
 /* ---------- 基础 ---------- */
@@ -149,6 +151,7 @@ a {
   flex: 0 1 auto;
   min-width: 0;
   width: min(72vw, 54rem); /* 主岛：整体更紧凑 */
+  min-height: var(--dock-h);
   padding: 0.22rem;
   border-radius: 2rem;
   background: rgba(255, 255, 255, 0.4); /* 磨砂调浅：更透明 */
@@ -274,11 +277,11 @@ a {
   }
 }
 
-/* —— 搜索副岛：明显小于主岛的小圆岛，与主岛垂直居中对齐 —— */
+/* —— 搜索副岛：直径与主岛高度一致的小圆岛，垂直居中对齐 —— */
 .search-island {
   position: relative;
-  width: 2.6rem;
-  height: 2.6rem;
+  width: var(--dock-h);
+  height: var(--dock-h);
   flex: none;
   display: grid;
   place-items: center;
@@ -307,8 +310,8 @@ a {
 }
 
 .search-island svg {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 /* —— 搜索浮层 —— */
@@ -974,6 +977,7 @@ a {
     bottom: max(10px, env(safe-area-inset-bottom, 0px));
     gap: 0.6rem;
     padding: 0 0.55rem;
+    --dock-h: 3.52rem; /* 窄屏时主岛更矮，副岛直径随之等大 */
   }
 
   .apptabbar {
@@ -1001,14 +1005,9 @@ a {
     font-size: 0.68rem;
   }
 
-  .search-island {
-    width: 2.3rem;
-    height: 2.3rem;
-  }
-
   .search-island svg {
-    width: 1.05rem;
-    height: 1.05rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
 }
 
