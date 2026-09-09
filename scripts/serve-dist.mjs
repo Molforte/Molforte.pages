@@ -60,4 +60,6 @@ const server = createServer(async (req, res) => {
   }
 })
 
-server.listen(PORT, () => console.log(`[serve-dist] http://127.0.0.1:${PORT}  (模拟 GitHub Pages) -> ${ROOT}`))
+server.listen(PORT, () =>
+  console.log(`[serve-dist] http://127.0.0.1:${PORT}  (模拟 GitHub Pages) -> ${ROOT}`),
+)

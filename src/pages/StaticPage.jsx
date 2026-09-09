@@ -34,11 +34,7 @@ export default function StaticPage({ slug }) {
       <header>
         <h1 className="page__title">{page.title}</h1>
       </header>
-      <div
-        ref={bodyRef}
-        className="post-body"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div ref={bodyRef} className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   )
 }

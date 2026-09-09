@@ -48,6 +48,14 @@ npm run build      # 产物在 dist/
 
 开发模式下新增 / 修改文章即时生效（`import.meta.glob` 会监听 `content/`）。
 
+### 代码质量
+
+- `npm run lint`：ESLint 检查（React Hooks、Fast Refresh 等规则）；
+- `npm run lint:fix`：自动修复可修问题；
+- `npm run format`：Prettier 统一格式（只格式化代码，不改文章 Markdown）。
+
+配置见 `eslint.config.js` 与 `.prettierrc`。
+
 ### 本地预览（模拟 GitHub Pages 子路径）
 
 `vite preview` 在子路径 base 下资源映射不对，预览请用：

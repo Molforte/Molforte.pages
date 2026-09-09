@@ -3,8 +3,7 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 
 const BASE = process.env.QA_BASE || 'http://127.0.0.1:4173/Molforte.pages'
-const EDGE =
-  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const OUT = '.qa'
 mkdirSync(OUT, { recursive: true })
 
@@ -34,10 +33,12 @@ for (const c of cases) {
     title: document.title,
     h1: document.querySelector('h1')?.textContent?.trim() || null,
     links: document.querySelectorAll('a').length,
-    hasTopBar: !!document.querySelector('header, nav') && (() => {
-      const h = document.querySelector('header')
-      return !!h && getComputedStyle(h).position === 'fixed'
-    })(),
+    hasTopBar:
+      !!document.querySelector('header, nav') &&
+      (() => {
+        const h = document.querySelector('header')
+        return !!h && getComputedStyle(h).position === 'fixed'
+      })(),
     bodyTextLen: document.body.innerText.length,
   }))
   console.log(

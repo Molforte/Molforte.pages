@@ -48,9 +48,7 @@ export default function Archive() {
         <section className="archive-group-card" key={group.name}>
           <header className="archive-group-card__head">
             <h2 className="archive-group-card__name">{group.name}</h2>
-            <span className="archive-group-card__count">
-              {group.items.length} 篇
-            </span>
+            <span className="archive-group-card__count">{group.items.length} 篇</span>
           </header>
           <ol className="archive-rows">
             {group.items.map((post) => (

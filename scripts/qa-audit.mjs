@@ -3,7 +3,11 @@ import { chromium } from 'playwright-core'
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const BASE = 'http://127.0.0.1:4173/Molforte.pages'
 
-const browser = await chromium.launch({ executablePath: EDGE, headless: true, args: ['--disable-gpu'] })
+const browser = await chromium.launch({
+  executablePath: EDGE,
+  headless: true,
+  args: ['--disable-gpu'],
+})
 
 async function audit(name, url, vw, vh, withHover = false) {
   const page = await browser.newPage({ viewport: { width: vw, height: vh } })
@@ -23,16 +27,23 @@ async function audit(name, url, vw, vh, withHover = false) {
     const label = document.querySelector('.apptabbar__label')
     return {
       unexpectedFixedSticky: floaters,
-      island: island && irect ? {
-        widthRatio: +(irect.width / window.innerWidth).toFixed(3),
-        tabCount: document.querySelectorAll('.apptabbar__tab').length,
-        glass: getComputedStyle(island).backdropFilter || getComputedStyle(island).webkitBackdropFilter,
-      } : null,
+      island:
+        island && irect
+          ? {
+              widthRatio: +(irect.width / window.innerWidth).toFixed(3),
+              tabCount: document.querySelectorAll('.apptabbar__tab').length,
+              glass:
+                getComputedStyle(island).backdropFilter ||
+                getComputedStyle(island).webkitBackdropFilter,
+            }
+          : null,
       labelsHiddenByDefault: label ? getComputedStyle(label).visibility : null,
-      active: active ? {
-        label: active.getAttribute('aria-label'),
-        segmentRatio: +(active.getBoundingClientRect().width / irect.width).toFixed(3),
-      } : null,
+      active: active
+        ? {
+            label: active.getAttribute('aria-label'),
+            segmentRatio: +(active.getBoundingClientRect().width / irect.width).toFixed(3),
+          }
+        : null,
       searchIsland: search ? Math.round(search.getBoundingClientRect().height) : null,
       h1: document.querySelector('h1, .post__title, .page__title')?.textContent?.trim() || null,
       hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { posts, formatDate } from '../lib/content.js'
 
@@ -66,11 +66,16 @@ export default function BottomDock() {
     const key = q.trim().toLowerCase()
     if (!key) return []
     return posts
-      .filter((p) =>
-        `${p.title} ${p.tags.join(' ')} ${p.slug}`.toLowerCase().includes(key),
-      )
+      .filter((p) => `${p.title} ${p.tags.join(' ')} ${p.slug}`.toLowerCase().includes(key))
       .slice(0, 12)
   }, [q])
+
+  const close = useCallback(() => {
+    setOpen(false)
+    setQ('')
+    // 关闭后把焦点还给触发按钮，键盘用户不失焦
+    requestAnimationFrame(() => triggerRef.current?.focus())
+  }, [])
 
   // 打开时：聚焦输入框、锁滚动、让背后内容 inert（不可交互/不可聚焦）
   useEffect(() => {
@@ -120,14 +125,7 @@ export default function BottomDock() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
-
-  const close = () => {
-    setOpen(false)
-    setQ('')
-    // 关闭后把焦点还给触发按钮，键盘用户不失焦
-    requestAnimationFrame(() => triggerRef.current?.focus())
-  }
+  }, [open, close])
 
   return (
     <>
@@ -141,9 +139,7 @@ export default function BottomDock() {
                 to={tab.to}
                 end={tab.end}
                 aria-label={tab.label}
-                className={({ isActive }) =>
-                  `apptabbar__tab${isActive ? ' is-active' : ''}`
-                }
+                className={({ isActive }) => `apptabbar__tab${isActive ? ' is-active' : ''}`}
               >
                 <span className="apptabbar__icon-wrap">
                   <svg className="apptabbar__icon" {...ICON_PROPS}>

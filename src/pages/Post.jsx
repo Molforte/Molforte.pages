@@ -18,10 +18,7 @@ function PagerItem({ to, label, title, align }) {
     )
   }
   return (
-    <Link
-      className={`pager-item ${align === 'right' ? 'pager-item--right' : ''}`}
-      to={to}
-    >
+    <Link className={`pager-item ${align === 'right' ? 'pager-item--right' : ''}`} to={to}>
       <span className="pager-item__label">{label}</span>
       <span className="pager-item__title">{title}</span>
     </Link>
@@ -84,18 +81,10 @@ export default function Post() {
         </p>
       </header>
 
-      <div
-        ref={bodyRef}
-        className="post-body"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div ref={bodyRef} className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
 
       <nav className="post__pager" aria-label="文章上下篇">
-        <PagerItem
-          to={left ? `/post/${left.slug}` : null}
-          label="较新的文章"
-          title={left?.title}
-        />
+        <PagerItem to={left ? `/post/${left.slug}` : null} label="较新的文章" title={left?.title} />
         <PagerItem
           to={right ? `/post/${right.slug}` : null}
           label="较旧的文章"

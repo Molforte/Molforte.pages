@@ -30,9 +30,7 @@ export default function Home() {
                     {tag}
                   </span>
                 ))}
-                <span className="post-card__read">
-                  约 {readingMinutes(post.content)} 分钟
-                </span>
+                <span className="post-card__read">约 {readingMinutes(post.content)} 分钟</span>
               </p>
             </Link>
           </li>
@@ -43,9 +41,7 @@ export default function Home() {
         <p className="home-foot">还没有文章。往 content/ 里放一篇 Markdown 就有了。</p>
       )}
 
-      {posts.length > 0 && (
-        <p className="home-foot">共 {posts.length} 篇文章 · 按时间倒序</p>
-      )}
+      {posts.length > 0 && <p className="home-foot">共 {posts.length} 篇文章 · 按时间倒序</p>}
     </>
   )
 }
