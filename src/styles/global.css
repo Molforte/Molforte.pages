@@ -551,21 +551,6 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* 悬停时一个细箭头滑入 */
-.post-card__arrow {
-  margin-left: auto;
-  color: var(--link);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  font-size: 1.05em;
-}
-
-.post-card:hover .post-card__arrow {
-  opacity: 1;
-  transform: none;
-}
-
 .post-card__link:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;

@@ -33,9 +33,6 @@ export default function Home() {
                 <span className="post-card__read">
                   约 {readingMinutes(post.content)} 分钟
                 </span>
-                <span className="post-card__arrow" aria-hidden="true">
-                  →
-                </span>
               </p>
             </Link>
           </li>
