@@ -17,26 +17,22 @@ export default function Home() {
 
       <ol className="post-index">
         {posts.map((post) => (
-          <li className="timeline-item" key={post.slug}>
-            <span className="timeline-item__dot" aria-hidden="true" />
-            <div className="timeline-item__body">
-              <time className="timeline-item__date" dateTime={post.date}>
-                {formatDate(post.date)}
-              </time>
-              <h2 className="timeline-item__title">
-                <Link to={`/post/${post.slug}`}>{post.title}</Link>
-              </h2>
-              <p className="timeline-item__summary">{post.summary}</p>
-              <p className="timeline-item__meta">
+          <li className="post-card" key={post.slug}>
+            <Link className="post-card__link" to={`/post/${post.slug}`}>
+              <h2 className="post-card__title">{post.title}</h2>
+              <p className="post-card__summary">{post.summary}</p>
+              <p className="post-card__meta">
+                <time dateTime={post.date}>{formatDate(post.date)}</time>
                 {post.tags.length > 0 && (
                   <>
-                    <span>{post.tags.join(' · ')}</span>
                     <span className="sep">·</span>
+                    <span>{post.tags.join(' · ')}</span>
                   </>
                 )}
+                <span className="sep">·</span>
                 <span>约 {readingMinutes(post.content)} 分钟</span>
               </p>
-            </div>
+            </Link>
           </li>
         ))}
       </ol>
