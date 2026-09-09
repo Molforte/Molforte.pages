@@ -14,21 +14,29 @@ async function audit(name, url, vw, vh) {
       const el = document.querySelector(sel)
       return el ? getComputedStyle(el)[prop] : null
     }
-    const floating = [...document.querySelectorAll('body *')].filter((el) => {
+    // 唯一允许的 fixed 元素是底栏；顶栏/悬浮一律不允许
+    const floaters = [...document.querySelectorAll('body *')].filter((el) => {
       const p = getComputedStyle(el).position
-      return p === 'fixed' || p === 'sticky'
+      if (p !== 'fixed' && p !== 'sticky') return false
+      return !el.classList.contains('apptabbar')
     }).length
+    const bar = document.querySelector('.apptabbar')
+    const barRect = bar ? bar.getBoundingClientRect() : null
     const frame = document.querySelector('.site-frame')
     const rect = frame ? frame.getBoundingClientRect() : null
     return {
-      floatingElements: floating, // 任何 fixed/sticky 都不允许（无顶栏）
+      unexpectedFixedSticky: floaters,
+      tabBar: bar ? {
+        count: document.querySelectorAll('.apptabbar__tab').length,
+        bottom: Math.round(window.innerHeight - (barRect?.bottom || 0)),
+        height: Math.round(barRect?.height || 0),
+        active: document.querySelector('.apptabbar__tab.is-active')?.textContent?.trim() || null,
+      } : null,
       frameW: rect ? Math.round(rect.width) : null,
       frameRatio: rect ? +(rect.width / window.innerWidth).toFixed(3) : null,
-      footerNavLinks: document.querySelectorAll('.site-footer__nav a').length,
-      activeNav: document.querySelector('.site-footer__nav a[aria-current="page"]')?.textContent?.trim() || null,
-      bodyBg: cs('body', 'backgroundColor'),
       h1: document.querySelector('h1, .post__title, .page__title')?.textContent?.trim() || null,
       hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      contentClearance: frame ? Math.round(frame.getBoundingClientRect().bottom) >= window.innerHeight - 120 : null,
       codeBlocks: document.querySelectorAll('.post-body pre').length,
     }
   })

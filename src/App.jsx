@@ -6,6 +6,7 @@ import Archive from './pages/Archive.jsx'
 import StaticPage from './pages/StaticPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
+import TabBar from './components/TabBar.jsx'
 
 /** 路由切换时回到顶部 */
 function ScrollToTop() {
@@ -18,19 +19,22 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <div className="site-frame">
-      <main className="site-main">
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/archive" element={<Archive />} />
-          <Route path="/friends" element={<StaticPage slug="friends" />} />
-          <Route path="/about" element={<StaticPage slug="about" />} />
-          <Route path="/post/:slug" element={<Post />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+    <>
+      <div className="site-frame">
+        <main className="site-main">
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/friends" element={<StaticPage slug="friends" />} />
+            <Route path="/about" element={<StaticPage slug="about" />} />
+            <Route path="/post/:slug" element={<Post />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+      <TabBar />
+    </>
   )
 }

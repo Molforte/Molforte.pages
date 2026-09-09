@@ -78,13 +78,15 @@ a {
   flex-direction: column;
 }
 
-/* ---------- 整体布局：居中的内容流（无顶栏、无侧栏） ---------- */
+/* ---------- 整体布局：居中的内容流（无顶栏） ---------- */
 .site-frame {
   flex: 1;
   width: min(100% - 2 * var(--gutter), var(--measure-list));
   margin-inline: auto;
   display: flex;
   flex-direction: column;
+  /* 给固定的应用式底栏让位 */
+  padding-bottom: calc(4.4rem + env(safe-area-inset-bottom, 0px));
 }
 
 .site-main {
@@ -93,39 +95,16 @@ a {
 }
 
 /* ============================================================
-   页脚导航
+   页脚（版权一行）
    ============================================================ */
 .site-footer {
-  margin-top: clamp(3.5rem, 11vh, 6.5rem);
+  margin-top: clamp(2.8rem, 9vh, 5rem);
   border-top: 1px solid var(--hairline);
-  padding: 1.9rem 0 2.8rem;
-}
-
-.site-footer__nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1.9rem;
-}
-
-.site-footer__nav a {
-  color: var(--text-2);
-  font-size: 0.96rem;
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.site-footer__nav a:hover {
-  color: var(--text);
-}
-
-.site-footer__nav a.is-active {
-  color: var(--text);
-  font-weight: 600;
+  padding: 1.6rem 0 0;
 }
 
 .site-footer__line {
-  margin: 1.2rem 0 0;
+  margin: 0;
   color: var(--text-3);
   font-size: 0.875rem;
 }
@@ -138,6 +117,70 @@ a {
 
 .site-footer__line a:hover {
   color: var(--link);
+}
+
+/* ============================================================
+   应用式底栏（主页 / 归档 / 友链 / 关于）
+   ============================================================ */
+.apptabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  border-top: 1px solid var(--hairline);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.apptabbar__tabs {
+  display: flex;
+  width: min(100%, var(--measure-list));
+  margin-inline: auto;
+}
+
+.apptabbar__tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0 0.4rem;
+  color: var(--text-3);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease;
+}
+
+.apptabbar__tab:hover {
+  color: var(--text-2);
+}
+
+.apptabbar__tab.is-active {
+  color: var(--text);
+}
+
+.apptabbar__icon {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.apptabbar__label {
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.apptabbar__tab.is-active .apptabbar__label {
+  font-weight: 600;
+}
+
+.apptabbar .apptabbar__tab:focus-visible {
+  outline-offset: -2px;
 }
 
 /* ============================================================
@@ -687,10 +730,28 @@ a {
 /* ============================================================
    手机微调
    ============================================================ */
-/* 小屏（<900px）：内容放宽到接近全宽，保证可读性 */
+/* 小屏（<900px）：内容放宽到接近全宽，底栏标签铺满 */
 @media (max-width: 899px) {
   .site-frame {
     width: min(100% - 2 * var(--gutter), 46rem);
+  }
+
+  .apptabbar__tabs {
+    width: 100%;
+  }
+
+  .apptabbar__tab {
+    gap: 0.18rem;
+    padding: 0.5rem 0 0.42rem;
+  }
+
+  .apptabbar__icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .apptabbar__label {
+    font-size: 0.64rem;
   }
 }
 
