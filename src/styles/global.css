@@ -456,7 +456,7 @@ a {
 
 .post-card {
   margin: 0;
-  height: 16rem; /* 固定舒适高度 */
+  height: 14rem; /* 固定舒适高度（更矮） */
   background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
   border: 1px solid rgba(29, 29, 31, 0.1);
   border-radius: 18px;
@@ -479,14 +479,14 @@ a {
 
 .post-card__link {
   display: block;
-  padding: 2.1rem 2.1rem 2.2rem;
+  padding: 1.4rem 1.7rem 1.5rem;
   color: var(--text);
   text-decoration: none;
 }
 
 .post-card__title {
   margin: 0;
-  font-size: 1.42rem;
+  font-size: 1.2rem;
   font-weight: 600;
   line-height: 1.45;
   letter-spacing: -0.01em;
@@ -502,19 +502,19 @@ a {
 }
 
 .post-card__summary {
-  margin: 0.7rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--text-2);
-  font-size: 1rem;
-  line-height: 1.85;
+  font-size: 0.94rem;
+  line-height: 1.7;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3; /* 摘要最多 3 行 */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .post-card__meta {
-  margin: 1.15rem 0 0;
-  font-size: 0.86rem;
+  margin: 0.95rem 0 0;
+  font-size: 0.82rem;
   color: var(--text-3);
   letter-spacing: 0.01em;
 }
@@ -1047,15 +1047,26 @@ a {
   }
 
   .post-card__link {
-    padding: 1.6rem 1.4rem 1.7rem;
+    padding: 1.2rem 1.2rem 1.3rem;
   }
 
   .post-card {
-    height: 13.5rem;
+    height: 13rem;
   }
 
   .post-card__title {
-    font-size: 1.18rem;
+    font-size: 1.1rem;
+  }
+
+  .post-card__summary {
+    margin: 0.45rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  .post-card__meta {
+    margin: 0.8rem 0 0;
+    font-size: 0.78rem;
   }
 
   .post-card__summary {
