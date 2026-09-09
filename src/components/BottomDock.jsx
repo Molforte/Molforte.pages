@@ -59,6 +59,8 @@ export default function BottomDock() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const inputRef = useRef(null)
+  const panelRef = useRef(null)
+  const triggerRef = useRef(null)
 
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
@@ -70,22 +72,51 @@ export default function BottomDock() {
       .slice(0, 12)
   }, [q])
 
-  // 打开时聚焦输入框、锁滚动
+  // 打开时：聚焦输入框、锁滚动、让背后内容 inert（不可交互/不可聚焦）
   useEffect(() => {
     if (!open) return
     inputRef.current?.focus()
     const prevOverflow = document.documentElement.style.overflow
     document.documentElement.style.overflow = 'hidden'
+    const frame = document.querySelector('.site-frame')
+    const dock = document.querySelector('.dock')
+    frame?.setAttribute('inert', '')
+    dock?.setAttribute('inert', '')
     return () => {
       document.documentElement.style.overflow = prevOverflow
+      frame?.removeAttribute('inert')
+      dock?.removeAttribute('inert')
     }
   }, [open])
 
-  // Esc 关闭
+  // 键盘：Esc 关闭；Tab/Shift+Tab 只在浮层内循环（焦点陷阱）
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        close()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusables = panel.querySelectorAll(
+        'a[href], button, input, [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement
+      const inside = panel.contains(active)
+      if (e.shiftKey) {
+        if (active === first || !inside) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else if (active === last || !inside) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -94,6 +125,8 @@ export default function BottomDock() {
   const close = () => {
     setOpen(false)
     setQ('')
+    // 关闭后把焦点还给触发按钮，键盘用户不失焦
+    requestAnimationFrame(() => triggerRef.current?.focus())
   }
 
   return (
@@ -130,6 +163,7 @@ export default function BottomDock() {
           type="button"
           className="search-island"
           aria-label="搜索文章"
+          ref={triggerRef}
           onClick={() => setOpen(true)}
         >
           <svg {...ICON_PROPS}>{ICON.search}</svg>
@@ -146,7 +180,7 @@ export default function BottomDock() {
             if (e.target === e.currentTarget) close()
           }}
         >
-          <div className="search-panel">
+          <div className="search-panel" ref={panelRef}>
             <div className="search-panel__row">
               <svg {...ICON_PROPS}>{ICON.search}</svg>
               <input
