@@ -129,19 +129,20 @@ a {
   transform: translateX(-50%);
   z-index: 50;
   display: flex;
-  padding: 0.42rem;
-  border-radius: 2.1rem;
-  background: rgba(255, 255, 255, 0.52);
-  -webkit-backdrop-filter: blur(22px) saturate(1.8);
-  backdrop-filter: blur(22px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  width: 80%; /* 占整页宽度的 80% */
+  padding: 0.42rem 0.3rem;
+  border-radius: 2.4rem;
+  background: rgba(255, 255, 255, 0.4); /* 磨砂调浅：更透明 */
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
-    0 14px 40px rgba(29, 29, 31, 0.14),
-    0 3px 10px rgba(29, 29, 31, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    0 8px 28px rgba(29, 29, 31, 0.08),
+    0 2px 8px rgba(29, 29, 31, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
-/* 顶部高光：液态玻璃的受光面 */
+/* 顶部高光：更克制 */
 .apptabbar::before {
   content: '';
   position: absolute;
@@ -149,32 +150,35 @@ a {
   border-radius: inherit;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.72),
-    rgba(255, 255, 255, 0) 46%
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0) 42%
   );
   pointer-events: none;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .apptabbar {
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.9);
   }
 }
 
 .apptabbar__tabs {
   position: relative;
   display: flex;
+  width: 100%;
+  flex: 1;
   gap: 0.15rem;
 }
 
 .apptabbar__tab {
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.18rem;
-  padding: 0.34rem 0.62rem 0.3rem;
+  padding: 0.34rem 0.4rem 0.3rem;
   color: var(--text-3);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -209,7 +213,7 @@ a {
   transition: color 0.2s ease;
 }
 
-/* 选中加深：图标落入深色小泡，标签转为墨色加粗 */
+/* 选中：略微加深——图标与文字转墨色，背后只有一层极淡的暗化 */
 .apptabbar__tab.is-active {
   color: var(--text);
 }
@@ -219,14 +223,12 @@ a {
 }
 
 .apptabbar__tab.is-active .apptabbar__icon-wrap {
-  background: var(--text);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.25),
-    0 2px 6px rgba(29, 29, 31, 0.28);
+  background: rgba(29, 29, 31, 0.1);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
 
 .apptabbar__tab.is-active .apptabbar__icon {
-  color: #fff;
+  color: var(--text);
 }
 
 .apptabbar__tab:focus-visible {

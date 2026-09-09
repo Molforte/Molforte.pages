@@ -25,8 +25,7 @@ async function audit(name, url, vw, vh) {
       island: bar && rect ? {
         tabCount: document.querySelectorAll('.apptabbar__tab').length,
         floating: Math.round(window.innerHeight - rect.bottom), // >0 即悬浮离底
-        width: Math.round(rect.width),
-        notFullWidth: rect.width < window.innerWidth - 40,
+        widthRatio: +(rect.width / window.innerWidth).toFixed(3), // 期望 ≈0.8
         centeredWithin: Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) <= 3,
         radius: cs(bar, 'borderRadius'),
         glass: cs(bar, 'backdropFilter') || cs(bar, '-webkit-backdrop-filter'),
