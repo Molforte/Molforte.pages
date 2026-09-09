@@ -25,9 +25,9 @@
   --gutter: clamp(1.5rem, 6vw, 2.5rem);
   --radius: 10px;
 
-  /* 布局 */
-  --measure-list: min(60vw, 50rem); /* 内容流 ≈ 整页 60% */
-  --measure-post: 42rem; /* 正文阅读列 */
+  /* 布局：全站统一内容宽度（比之前更宽、不追 60%） */
+  --measure: min(76vw, 60rem); /* 所有页面共用；超宽屏封顶 60rem */
+  --measure-phone: 46rem; /* 小屏回退宽度 */
 }
 
 /* ---------- 基础 ---------- */
@@ -81,7 +81,7 @@ a {
 /* ---------- 整体布局：居中的内容流（无顶栏） ---------- */
 .site-frame {
   flex: 1;
-  width: min(100% - 2 * var(--gutter), var(--measure-list));
+  width: min(100% - 2 * var(--gutter), var(--measure));
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -324,8 +324,7 @@ a {
 .static-page,
 .notfound {
   padding-top: clamp(2.2rem, 8vh, 4.4rem);
-  width: min(100%, var(--measure-post));
-  margin-inline: auto;
+  width: 100%; /* 与全站同宽 */
 }
 
 .post__back {
@@ -786,7 +785,7 @@ a {
 /* 小屏（<900px）：内容放宽到接近全宽，底栏岛微调 */
 @media (max-width: 899px) {
   .site-frame {
-    width: min(100% - 2 * var(--gutter), 46rem);
+    width: min(100% - 2 * var(--gutter), var(--measure-phone));
   }
 
   .apptabbar {
