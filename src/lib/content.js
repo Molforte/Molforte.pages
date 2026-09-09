@@ -140,14 +140,7 @@ export function readingMinutes(md) {
   return Math.max(1, Math.round(cjk / 420 + en / 180))
 }
 
-/** 2026-09-08 -> 2026年9月8日 */
+/** 简洁日期：2026-09-08（等宽数字、更克制） */
 export function formatDate(iso) {
-  if (!iso) return ''
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(d)
+  return iso || ''
 }
