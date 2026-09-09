@@ -444,67 +444,96 @@ a {
   font-size: 1.05rem;
 }
 
-/* 首页文章流：浅灰圆角卡片 —— 宽屏两列，手机单列 */
+/* 首页文章流：时间轴句读 —— 日期徽章 + 竖向时间轴贯穿 */
 .post-index {
   margin: 0;
   padding: 0;
   list-style: none;
+  position: relative;
+}
+
+.post-index::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--hairline);
+}
+
+.timeline-item {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: 14px minmax(0, 1fr);
+  column-gap: 1.1rem;
+  align-items: start;
+  padding-bottom: 2rem;
 }
 
-.post-card {
-  margin: 0;
-  background: var(--bg-soft);
-  border-radius: 14px;
-  overflow: hidden;
-  transition: background 0.16s ease, transform 0.16s ease;
+.timeline-item:last-child {
+  padding-bottom: 0;
 }
 
-.post-card:hover {
-  background: #eeeeef;
-  transform: translateY(-2px);
-}
-
-.post-card__link {
+.timeline-item__dot {
   display: block;
-  padding: 1.2rem 1.3rem 1.25rem;
-  color: var(--text);
-  text-decoration: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 0.36rem;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--text-3);
 }
 
-.post-card__title {
-  margin: 0;
-  font-size: 1.12rem;
+.timeline-item__body {
+  min-width: 0;
+}
+
+.timeline-item__date {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-3);
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-item__title {
+  margin: 0.3rem 0 0;
+  font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.5;
   letter-spacing: -0.005em;
+}
+
+.timeline-item__title a {
+  color: var(--text);
+  text-decoration: none;
   transition: color 0.16s ease;
 }
 
-.post-card:hover .post-card__title {
+.timeline-item__title a:hover {
   color: var(--link);
 }
 
-.post-card__summary {
-  margin: 0.55rem 0 0;
+.timeline-item__summary {
+  margin: 0.4rem 0 0;
   color: var(--text-2);
   font-size: 0.95rem;
   line-height: 1.75;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
-.post-card__meta {
-  margin: 0.85rem 0 0;
+.timeline-item__meta {
+  margin: 0.5rem 0 0;
   font-size: 0.84rem;
   color: var(--text-3);
 }
 
-.post-card__meta .sep {
+.timeline-item__meta .sep {
   margin: 0 0.45em;
   color: var(--text-3);
 }
