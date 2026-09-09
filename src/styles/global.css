@@ -484,7 +484,9 @@ a {
 }
 
 .post-card__link {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 1.15rem 1.7rem 1.25rem;
   color: var(--text);
   text-decoration: none;
@@ -507,13 +509,15 @@ a {
   color: var(--link);
 }
 
+/* 摘要弹性占满剩余高度：内容多则填满整卡，超出省略 */
 .post-card__summary {
+  flex: 1 1 auto;
   margin: 0.4rem 0 0;
   color: var(--text-2);
   font-size: 0.9rem;
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* 摘要最多 3 行 */
+  -webkit-line-clamp: 12;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
