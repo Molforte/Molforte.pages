@@ -444,13 +444,13 @@ a {
   font-size: 1.05rem;
 }
 
-/* 首页文章流：白卡描边 + 轻投影 —— 宽屏两列，手机单列 */
+/* 首页文章流：单栏卡片 —— 一条一行，占满内容宽 */
 .post-index {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.2rem;
 }
 
