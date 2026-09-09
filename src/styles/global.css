@@ -476,10 +476,10 @@ a {
 
 .post-card:hover {
   border-color: rgba(29, 29, 31, 0.16);
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow:
-    0 2px 6px rgba(29, 29, 31, 0.05),
-    0 26px 52px rgba(29, 29, 31, 0.12),
+    0 10px 24px rgba(29, 29, 31, 0.07),
+    0 2px 6px rgba(29, 29, 31, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
