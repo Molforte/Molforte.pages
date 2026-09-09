@@ -444,53 +444,68 @@ a {
   font-size: 1.05rem;
 }
 
-/* 首页文章索引 */
+/* 首页文章流：浅灰圆角卡片 —— 宽屏两列，手机单列 */
 .post-index {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.1rem;
 }
 
-.post-item {
-  border-top: 1px solid var(--hairline);
-  padding: 1.6rem 0;
-}
-
-.post-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.post-item:last-child {
-  padding-bottom: 0;
-}
-
-.post-item__title {
+.post-card {
   margin: 0;
-  font-size: 1.28rem;
+  background: var(--bg-soft);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: background 0.16s ease, transform 0.16s ease;
+}
+
+.post-card:hover {
+  background: #eeeeef;
+  transform: translateY(-2px);
+}
+
+.post-card__link {
+  display: block;
+  padding: 1.2rem 1.3rem 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.post-card__title {
+  margin: 0;
+  font-size: 1.12rem;
   font-weight: 600;
   line-height: 1.5;
   letter-spacing: -0.005em;
+  transition: color 0.16s ease;
 }
 
-.post-item__title a {
-  color: var(--text);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.post-item__title a:hover {
+.post-card:hover .post-card__title {
   color: var(--link);
 }
 
-.post-item__meta {
-  margin: 0.45rem 0 0;
-  font-size: 0.875rem;
+.post-card__summary {
+  margin: 0.55rem 0 0;
   color: var(--text-2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.post-item__meta .sep {
-  margin: 0 0.55em;
+.post-card__meta {
+  margin: 0.85rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-3);
+}
+
+.post-card__meta .sep {
+  margin: 0 0.45em;
   color: var(--text-3);
 }
 

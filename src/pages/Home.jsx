@@ -17,27 +17,22 @@ export default function Home() {
 
       <ol className="post-index">
         {posts.map((post) => (
-          <li className="post-item" key={post.slug}>
-            <h2 className="post-item__title">
-              <Link to={`/post/${post.slug}`}>{post.title}</Link>
-            </h2>
-            <p className="post-item__meta">
-              <time dateTime={post.date}>{formatDate(post.date)}</time>
-              {post.project && (
-                <>
-                  <span className="sep">·</span>
-                  <span>{post.project}</span>
-                </>
-              )}
-              {post.tags.length > 0 && (
-                <>
-                  <span className="sep">·</span>
-                  <span>{post.tags.join(' · ')}</span>
-                </>
-              )}
-              <span className="sep">·</span>
-              <span>阅读约 {readingMinutes(post.content)} 分钟</span>
-            </p>
+          <li className="post-card" key={post.slug}>
+            <Link className="post-card__link" to={`/post/${post.slug}`}>
+              <h2 className="post-card__title">{post.title}</h2>
+              <p className="post-card__summary">{post.summary}</p>
+              <p className="post-card__meta">
+                <time dateTime={post.date}>{formatDate(post.date)}</time>
+                {post.tags.length > 0 && (
+                  <>
+                    <span className="sep">·</span>
+                    <span>{post.tags.join(' · ')}</span>
+                  </>
+                )}
+                <span className="sep">·</span>
+                <span>约 {readingMinutes(post.content)} 分钟</span>
+              </p>
+            </Link>
           </li>
         ))}
       </ol>
