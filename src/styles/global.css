@@ -196,7 +196,7 @@ a {
   display: grid;
   place-items: center;
   margin: 0.12rem 0.1rem;
-  padding: 0.44rem 0;
+  padding: 0.5rem 0;
   border-radius: 1.8rem; /* 大胶囊格 */
   color: var(--text-3);
   text-decoration: none;
@@ -212,15 +212,15 @@ a {
 .apptabbar__icon-wrap {
   display: grid;
   place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.55rem;
+  height: 2.55rem;
   border-radius: 50%;
   background: transparent;
 }
 
 .apptabbar__icon {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.4rem;
+  height: 1.4rem;
   color: currentColor;
 }
 
@@ -274,11 +274,11 @@ a {
   }
 }
 
-/* —— 搜索副岛：独立的小圆岛，略低于主岛，构成横“感叹号” —— */
+/* —— 搜索副岛：独立小圆岛，与主岛垂直居中对齐 —— */
 .search-island {
   position: relative;
-  width: 3.6rem;
-  height: 3.6rem;
+  width: 3.8rem;
+  height: 3.8rem;
   flex: none;
   display: grid;
   place-items: center;
@@ -289,7 +289,6 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.8);
   color: var(--text-2);
   cursor: pointer;
-  transform: translateY(0.6rem); /* 圆点比主岛低一些 */
   transition: color 0.15s ease, transform 0.15s ease;
   box-shadow:
     0 8px 28px rgba(29, 29, 31, 0.08),
@@ -299,7 +298,7 @@ a {
 
 .search-island:hover {
   color: var(--text);
-  transform: translateY(0.6rem) scale(1.04);
+  transform: scale(1.04);
 }
 
 .search-island:focus-visible {
@@ -308,8 +307,8 @@ a {
 }
 
 .search-island svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.45rem;
+  height: 1.45rem;
 }
 
 /* —— 搜索浮层 —— */
@@ -984,18 +983,18 @@ a {
 
   .apptabbar__tab {
     margin: 0.1rem 0.05rem;
-    padding: 0.38rem 0;
+    padding: 0.42rem 0;
     border-radius: 1.6rem;
   }
 
   .apptabbar__icon-wrap {
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2.15rem;
+    height: 2.15rem;
   }
 
   .apptabbar__icon {
-    width: 1.05rem;
-    height: 1.05rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
 
   .apptabbar__label {
@@ -1003,18 +1002,13 @@ a {
   }
 
   .search-island {
-    width: 3rem;
-    height: 3rem;
-    transform: translateY(0.5rem);
-  }
-
-  .search-island:hover {
-    transform: translateY(0.5rem) scale(1.04);
+    width: 3.2rem;
+    height: 3.2rem;
   }
 
   .search-island svg {
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 }
 
