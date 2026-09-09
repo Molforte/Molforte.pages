@@ -6,7 +6,7 @@ import Archive from './pages/Archive.jsx'
 import StaticPage from './pages/StaticPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
-import TabBar from './components/TabBar.jsx'
+import BottomDock from './components/BottomDock.jsx'
 
 /** 路由切换时回到顶部 */
 function ScrollToTop() {
@@ -34,7 +34,7 @@ export default function App() {
         </main>
         <Footer />
       </div>
-      <TabBar />
+      <BottomDock />
     </>
   )
 }
