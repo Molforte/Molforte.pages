@@ -16,6 +16,36 @@
   --link: #0071e3;
   --link-hover: #0077ed;
 
+  /* 主题可切换的材质 token（亮/暗由 html[data-theme] 切换） */
+  --selection: rgba(0, 113, 227, 0.16);
+  --accent-hover: rgba(0, 113, 227, 0.07);
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-solid: rgba(255, 255, 255, 0.94);
+  --glass-shadow:
+    0 8px 28px rgba(29, 29, 31, 0.08), 0 2px 8px rgba(29, 29, 31, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --glass-sheen-top: rgba(255, 255, 255, 0.5);
+  --segment-sheen: rgba(255, 255, 255, 0.45);
+  --active-segment: rgba(29, 29, 31, 0.09);
+  --tooltip-bg: rgba(29, 29, 31, 0.92);
+  --tooltip-text: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.94);
+  --panel-shadow: 0 24px 80px rgba(29, 29, 31, 0.22);
+  --backdrop: rgba(29, 29, 31, 0.18);
+  --card-bg: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  --card-border: rgba(29, 29, 31, 0.07);
+  --card-border-hover: rgba(29, 29, 31, 0.16);
+  --card-shadow:
+    0 1px 2px rgba(29, 29, 31, 0.03), 0 10px 28px rgba(29, 29, 31, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --card-shadow-hover:
+    0 10px 24px rgba(29, 29, 31, 0.07), 0 2px 6px rgba(29, 29, 31, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --chip-bg: rgba(29, 29, 31, 0.05);
+  --row-hover-bg: rgba(29, 29, 31, 0.035);
+  --hl-blue: #0066cc;
+
   --sans:
     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto,
     'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC',
@@ -32,6 +62,49 @@
   --measure-phone: 46rem; /* 小屏回退宽度 */
   /* 底部功能区：主岛高度 = 搜索副岛直径（两者共用，保证等大） */
   --dock-h: 3.96rem;
+  color-scheme: light;
+}
+
+/* ---------- 深色模式（html[data-theme='dark']） ---------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101014;
+  --bg-soft: #1e1e24;
+  --text: #f5f5f7;
+  --text-2: #a6a6ab;
+  --text-3: #8e8e93;
+  --hairline: rgba(255, 255, 255, 0.12);
+  --link: #0a84ff;
+  --link-hover: #3a9bff;
+
+  --selection: rgba(10, 132, 255, 0.3);
+  --accent-hover: rgba(10, 132, 255, 0.16);
+  --glass-bg: rgba(30, 30, 36, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-solid: rgba(30, 30, 36, 0.9);
+  --glass-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-sheen-top: rgba(255, 255, 255, 0.06);
+  --segment-sheen: rgba(255, 255, 255, 0.16);
+  --active-segment: rgba(255, 255, 255, 0.12);
+  --tooltip-bg: rgba(250, 250, 250, 0.95);
+  --tooltip-text: #1d1d1f;
+  --panel-bg: rgba(26, 26, 32, 0.95);
+  --panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  --backdrop: rgba(0, 0, 0, 0.5);
+  --card-bg: linear-gradient(180deg, #191920 0%, #15151b 100%);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-hover: rgba(255, 255, 255, 0.16);
+  --card-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --card-shadow-hover:
+    0 10px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.07);
+  --row-hover-bg: rgba(255, 255, 255, 0.05);
+  --hl-blue: #6aa5ff;
 }
 
 /* ---------- 基础 ---------- */
@@ -61,7 +134,7 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 113, 227, 0.16);
+  background: var(--selection);
 }
 
 img {
@@ -109,6 +182,13 @@ a {
   padding: 1.6rem 0 0;
 }
 
+.site-footer__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .site-footer__line {
   margin: 0;
   color: var(--text-3);
@@ -123,6 +203,46 @@ a {
 
 .site-footer__line a:hover {
   color: var(--link);
+}
+
+/* 深浅色切换按钮 */
+.theme-toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  margin: -0.4rem -0.4rem 0 0; /* 抵消右/上边距，视觉上贴角 */
+  padding: 0.55rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  background: var(--chip-bg);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+
+.theme-toggle svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 760px) {
+  .site-footer__row {
+    align-items: flex-start;
+  }
 }
 
 .site-footer__stat {
@@ -162,14 +282,11 @@ a {
   min-height: var(--dock-h);
   padding: 0.22rem;
   border-radius: 2rem;
-  background: rgba(255, 255, 255, 0.4); /* 磨砂调浅：更透明 */
+  background: var(--glass-bg); /* 磨砂调浅：更透明 */
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   backdrop-filter: blur(16px) saturate(1.25);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 8px 28px rgba(29, 29, 31, 0.08),
-    0 2px 8px rgba(29, 29, 31, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 /* 顶部高光：更克制 */
@@ -178,14 +295,14 @@ a {
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 42%);
+  background: linear-gradient(180deg, var(--glass-sheen-top), rgba(255, 255, 255, 0) 42%);
   pointer-events: none;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .apptabbar,
   .search-island {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--glass-solid);
   }
 }
 
@@ -241,8 +358,8 @@ a {
   left: 50%;
   z-index: 5;
   transform: translateX(-50%) translateY(4px);
-  background: rgba(29, 29, 31, 0.92);
-  color: #fff;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 0.72rem;
   line-height: 1.4;
   padding: 0.35em 0.8em;
@@ -267,10 +384,10 @@ a {
 
 /* 选中：整格加深的大胶囊，约占岛宽的 1/4 */
 .apptabbar__tab.is-active {
-  background: rgba(29, 29, 31, 0.09);
+  background: var(--active-segment);
   color: var(--text);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 1px 1px var(--segment-sheen),
     0 1px 3px rgba(29, 29, 31, 0.06);
 }
 
@@ -296,19 +413,16 @@ a {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--glass-bg);
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   backdrop-filter: blur(16px) saturate(1.25);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--glass-border);
   color: var(--text-2);
   cursor: pointer;
   transition:
     color 0.15s ease,
     transform 0.15s ease;
-  box-shadow:
-    0 8px 28px rgba(29, 29, 31, 0.08),
-    0 2px 8px rgba(29, 29, 31, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: var(--glass-shadow);
 }
 
 .search-island:hover {
@@ -335,7 +449,7 @@ a {
   justify-content: center;
   align-items: flex-start;
   padding: 16vh 1rem 1rem;
-  background: rgba(29, 29, 31, 0.18);
+  background: var(--backdrop);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   animation: fade 0.15s ease both;
@@ -343,12 +457,12 @@ a {
 
 .search-panel {
   width: min(92vw, 40rem);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--panel-bg);
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--glass-border);
   border-radius: 1.4rem;
-  box-shadow: 0 24px 80px rgba(29, 29, 31, 0.22);
+  box-shadow: var(--panel-shadow);
   overflow: hidden;
   animation: rise 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -411,7 +525,7 @@ a {
 }
 
 .search-panel__item a:hover {
-  background: rgba(0, 113, 227, 0.07);
+  background: var(--accent-hover);
 }
 
 .search-panel__item time {
@@ -469,14 +583,11 @@ a {
 .post-card {
   margin: 0;
   height: 12.5rem; /* 固定舒适高度（更矮） */
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-  border: 1px solid rgba(29, 29, 31, 0.07);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 18px;
   overflow: hidden;
-  box-shadow:
-    0 1px 2px rgba(29, 29, 31, 0.03),
-    0 10px 28px rgba(29, 29, 31, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: var(--card-shadow);
   transition:
     box-shadow 0.2s ease,
     transform 0.2s ease,
@@ -484,12 +595,9 @@ a {
 }
 
 .post-card:hover {
-  border-color: rgba(29, 29, 31, 0.16);
+  border-color: var(--card-border-hover);
   transform: translateY(-3px);
-  box-shadow:
-    0 10px 24px rgba(29, 29, 31, 0.07),
-    0 2px 6px rgba(29, 29, 31, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .post-card__link {
@@ -547,7 +655,7 @@ a {
 }
 
 .post-card__tag {
-  background: rgba(29, 29, 31, 0.05);
+  background: var(--chip-bg);
   color: var(--text-2);
   border-radius: 6px;
   padding: 0.16em 0.6em;
@@ -839,7 +947,7 @@ a {
 .post-body .hljs-attribute,
 .post-body .hljs-template-variable,
 .post-body .hljs-variable {
-  color: #0066cc;
+  color: var(--hl-blue);
 }
 
 .post-body .hljs-title,
@@ -920,15 +1028,12 @@ a {
 
 /* —— 巨大的卡片（页面感 hero） —— */
 .archive-hero {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-  border: 1px solid rgba(29, 29, 31, 0.07);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 18px;
   padding: 2rem 2.2rem 2.1rem;
   margin-bottom: 2.6rem;
-  box-shadow:
-    0 1px 2px rgba(29, 29, 31, 0.03),
-    0 12px 32px rgba(29, 29, 31, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: var(--card-shadow);
 }
 
 .archive-hero__title {
@@ -974,14 +1079,11 @@ a {
 
 /* —— 每个项目一张大卡片（含标题与条目） —— */
 .archive-group-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-  border: 1px solid rgba(29, 29, 31, 0.07);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow:
-    0 1px 2px rgba(29, 29, 31, 0.03),
-    0 8px 24px rgba(29, 29, 31, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: var(--card-shadow);
 }
 
 .archive-group-card + .archive-group-card {
@@ -1026,7 +1128,7 @@ a {
 }
 
 .archive-row__link:hover {
-  background: rgba(29, 29, 31, 0.035);
+  background: var(--row-hover-bg);
 }
 
 .archive-row__date {
@@ -1059,7 +1161,7 @@ a {
 }
 
 .archive-row__tag {
-  background: rgba(29, 29, 31, 0.05);
+  background: var(--chip-bg);
   color: var(--text-2);
   border-radius: 6px;
   padding: 0.14em 0.55em;

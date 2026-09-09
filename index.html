@@ -17,6 +17,22 @@
     />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      // 首屏前应用主题（存值优先，否则跟随系统），避免闪烁
+      ;(function () {
+        try {
+          var s = localStorage.getItem('molforte-theme')
+          var t =
+            s ||
+            (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light')
+          document.documentElement.setAttribute('data-theme', t)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
