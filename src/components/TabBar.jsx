@@ -50,18 +50,20 @@ export default function TabBar() {
               `apptabbar__tab${isActive ? ' is-active' : ''}`
             }
           >
-            <svg
-              className="apptabbar__icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {tab.icon}
-            </svg>
+            <span className="apptabbar__icon-wrap">
+              <svg
+                className="apptabbar__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                {tab.icon}
+              </svg>
+            </span>
             <span className="apptabbar__label">{tab.label}</span>
           </NavLink>
         ))}

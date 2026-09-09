@@ -1,4 +1,4 @@
-// 设计审计：用计算样式验证设计要点是否落地（无头、无截图）
+// 设计审计：验证“悬浮岛底栏”设计要点是否落地（无头、无截图）
 import { chromium } from 'playwright-core'
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const BASE = 'http://127.0.0.1:4173/Molforte.pages'
@@ -10,33 +10,35 @@ async function audit(name, url, vw, vh) {
   await page.goto(url, { waitUntil: 'networkidle' })
   await page.waitForTimeout(300)
   const r = await page.evaluate(() => {
-    const cs = (sel, prop) => {
-      const el = document.querySelector(sel)
-      return el ? getComputedStyle(el)[prop] : null
-    }
-    // 唯一允许的 fixed 元素是底栏；顶栏/悬浮一律不允许
+    // 唯一允许 fixed/sticky：悬浮岛本身
     const floaters = [...document.querySelectorAll('body *')].filter((el) => {
       const p = getComputedStyle(el).position
       if (p !== 'fixed' && p !== 'sticky') return false
       return !el.classList.contains('apptabbar')
     }).length
     const bar = document.querySelector('.apptabbar')
-    const barRect = bar ? bar.getBoundingClientRect() : null
-    const frame = document.querySelector('.site-frame')
-    const rect = frame ? frame.getBoundingClientRect() : null
+    const rect = bar?.getBoundingClientRect()
+    const activeWrap = document.querySelector('.apptabbar__tab.is-active .apptabbar__icon-wrap')
+    const cs = (el, prop) => (el ? getComputedStyle(el)[prop] : null)
     return {
       unexpectedFixedSticky: floaters,
-      tabBar: bar ? {
-        count: document.querySelectorAll('.apptabbar__tab').length,
-        bottom: Math.round(window.innerHeight - (barRect?.bottom || 0)),
-        height: Math.round(barRect?.height || 0),
-        active: document.querySelector('.apptabbar__tab.is-active')?.textContent?.trim() || null,
+      island: bar && rect ? {
+        tabCount: document.querySelectorAll('.apptabbar__tab').length,
+        floating: Math.round(window.innerHeight - rect.bottom), // >0 即悬浮离底
+        width: Math.round(rect.width),
+        notFullWidth: rect.width < window.innerWidth - 40,
+        centeredWithin: Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) <= 3,
+        radius: cs(bar, 'borderRadius'),
+        glass: cs(bar, 'backdropFilter') || cs(bar, '-webkit-backdrop-filter'),
+        background: cs(bar, 'backgroundColor'),
       } : null,
-      frameW: rect ? Math.round(rect.width) : null,
-      frameRatio: rect ? +(rect.width / window.innerWidth).toFixed(3) : null,
+      active: bar ? {
+        label: document.querySelector('.apptabbar__tab.is-active')?.textContent?.trim() || null,
+        iconBubbleBg: activeWrap ? cs(activeWrap, 'backgroundColor') : null, // 应为深色 rgb(29,29,31)
+      } : null,
+      frameW: Math.round(document.querySelector('.site-frame')?.getBoundingClientRect().width || 0),
       h1: document.querySelector('h1, .post__title, .page__title')?.textContent?.trim() || null,
       hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-      contentClearance: frame ? Math.round(frame.getBoundingClientRect().bottom) >= window.innerHeight - 120 : null,
       codeBlocks: document.querySelectorAll('.post-body pre').length,
     }
   })

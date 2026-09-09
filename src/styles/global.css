@@ -85,8 +85,8 @@ a {
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  /* 给固定的应用式底栏让位 */
-  padding-bottom: calc(4.4rem + env(safe-area-inset-bottom, 0px));
+  /* 给悬浮岛底栏让位（岛悬浮于底部之上） */
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 .site-main {
@@ -120,67 +120,119 @@ a {
 }
 
 /* ============================================================
-   应用式底栏（主页 / 归档 / 友链 / 关于）
+   悬浮岛底栏（主页 / 归档 / 友链 / 关于）——液态玻璃质感
    ============================================================ */
 .apptabbar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
   z-index: 50;
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  backdrop-filter: blur(16px) saturate(1.5);
-  border-top: 1px solid var(--hairline);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  display: flex;
+  padding: 0.42rem;
+  border-radius: 2.1rem;
+  background: rgba(255, 255, 255, 0.52);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(22px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 14px 40px rgba(29, 29, 31, 0.14),
+    0 3px 10px rgba(29, 29, 31, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* 顶部高光：液态玻璃的受光面 */
+.apptabbar::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72),
+    rgba(255, 255, 255, 0) 46%
+  );
+  pointer-events: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .apptabbar {
+    background: rgba(255, 255, 255, 0.94);
+  }
 }
 
 .apptabbar__tabs {
+  position: relative;
   display: flex;
-  width: min(100%, var(--measure-list));
-  margin-inline: auto;
+  gap: 0.15rem;
 }
 
 .apptabbar__tab {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  padding: 0.45rem 0 0.4rem;
+  gap: 0.18rem;
+  padding: 0.34rem 0.62rem 0.3rem;
   color: var(--text-3);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s ease;
+  transition: color 0.18s ease;
 }
 
 .apptabbar__tab:hover {
   color: var(--text-2);
 }
 
-.apptabbar__tab.is-active {
-  color: var(--text);
+.apptabbar__icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .apptabbar__icon {
-  width: 1.3rem;
-  height: 1.3rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: currentColor;
+  transition: color 0.2s ease;
 }
 
 .apptabbar__label {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   line-height: 1;
   letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+/* 选中加深：图标落入深色小泡，标签转为墨色加粗 */
+.apptabbar__tab.is-active {
+  color: var(--text);
 }
 
 .apptabbar__tab.is-active .apptabbar__label {
   font-weight: 600;
 }
 
-.apptabbar .apptabbar__tab:focus-visible {
-  outline-offset: -2px;
+.apptabbar__tab.is-active .apptabbar__icon-wrap {
+  background: var(--text);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 2px 6px rgba(29, 29, 31, 0.28);
+}
+
+.apptabbar__tab.is-active .apptabbar__icon {
+  color: #fff;
+}
+
+.apptabbar__tab:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+  border-radius: 1.2rem;
 }
 
 /* ============================================================
@@ -730,28 +782,35 @@ a {
 /* ============================================================
    手机微调
    ============================================================ */
-/* 小屏（<900px）：内容放宽到接近全宽，底栏标签铺满 */
+/* 小屏（<900px）：内容放宽到接近全宽，底栏岛微调 */
 @media (max-width: 899px) {
   .site-frame {
     width: min(100% - 2 * var(--gutter), 46rem);
   }
 
-  .apptabbar__tabs {
-    width: 100%;
+  .apptabbar {
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    padding: 0.36rem;
+    border-radius: 1.9rem;
   }
 
   .apptabbar__tab {
-    gap: 0.18rem;
-    padding: 0.5rem 0 0.42rem;
+    padding: 0.28rem 0.5rem 0.26rem;
+    gap: 0.14rem;
+  }
+
+  .apptabbar__icon-wrap {
+    width: 1.95rem;
+    height: 1.95rem;
   }
 
   .apptabbar__icon {
-    width: 1.35rem;
-    height: 1.35rem;
+    width: 1.05rem;
+    height: 1.05rem;
   }
 
   .apptabbar__label {
-    font-size: 0.64rem;
+    font-size: 0.6rem;
   }
 }
 
