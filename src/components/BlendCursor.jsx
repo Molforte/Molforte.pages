@@ -60,7 +60,8 @@ export default function BlendCursor({ children }) {
     let lastR = 0
 
     const clearPrev = () => {
-      if (lastR) ctx.clearRect(lastX - lastR - 2, lastY - lastR - 2, (lastR + 2) * 2, (lastR + 2) * 2)
+      if (lastR)
+        ctx.clearRect(lastX - lastR - 2, lastY - lastR - 2, (lastR + 2) * 2, (lastR + 2) * 2)
     }
 
     const frame = () => {

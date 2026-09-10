@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { posts, formatDate } from '../lib/content.js'
-import { attachLiquidGlass } from '../lib/liquidGlass.js'
+import GlassSurface from './GlassSurface.jsx'
 
 const ICON = {
   home: (
@@ -62,17 +62,6 @@ export default function BottomDock() {
   const inputRef = useRef(null)
   const panelRef = useRef(null)
   const triggerRef = useRef(null)
-  const islandRef = useRef(null)
-
-  // 液态玻璃折射：shuding/liquid-glass 的 SVG 滤镜位移方案
-  useEffect(() => {
-    const detachIsland = attachLiquidGlass(islandRef.current)
-    const detachSearch = attachLiquidGlass(triggerRef.current)
-    return () => {
-      detachIsland()
-      detachSearch()
-    }
-  }, [])
 
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
@@ -142,40 +131,58 @@ export default function BottomDock() {
   return (
     <>
       <div className="dock">
-        {/* 主岛：仅图标；文字在悬浮/聚焦时浮现 */}
-        <nav className="apptabbar" aria-label="主导航" ref={islandRef}>
-          <div className="apptabbar__tabs">
-            {TABS.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                end={tab.end}
-                aria-label={tab.label}
-                className={({ isActive }) => `apptabbar__tab${isActive ? ' is-active' : ''}`}
-              >
-                <span className="apptabbar__icon-wrap">
-                  <svg className="apptabbar__icon" {...ICON_PROPS}>
-                    {tab.icon}
-                  </svg>
-                </span>
-                <span className="apptabbar__label" aria-hidden="true">
-                  {tab.label}
-                </span>
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-
-        {/* 搜索副岛：独立小圆岛，与主岛分离（横“感叹号”的圆点） */}
-        <button
-          type="button"
-          className="search-island"
-          aria-label="搜索文章"
-          ref={triggerRef}
-          onClick={() => setOpen(true)}
+        {/* 主岛：玻璃来自 React Bits 的 <GlassSurface />；内部只有图标，文字悬浮浮现 */}
+        <GlassSurface
+          className="dock-glass dock-glass--island"
+          width="min(72vw, 54rem)"
+          height="var(--dock-h)"
+          borderRadius={34}
+          backgroundOpacity={0.06}
+          saturation={1.2}
         >
-          <svg {...ICON_PROPS}>{ICON.search}</svg>
-        </button>
+          <nav className="apptabbar" aria-label="主导航">
+            <div className="apptabbar__tabs">
+              {TABS.map((tab) => (
+                <NavLink
+                  key={tab.to}
+                  to={tab.to}
+                  end={tab.end}
+                  aria-label={tab.label}
+                  className={({ isActive }) => `apptabbar__tab${isActive ? ' is-active' : ''}`}
+                >
+                  <span className="apptabbar__icon-wrap">
+                    <svg className="apptabbar__icon" {...ICON_PROPS}>
+                      {tab.icon}
+                    </svg>
+                  </span>
+                  <span className="apptabbar__label" aria-hidden="true">
+                    {tab.label}
+                  </span>
+                </NavLink>
+              ))}
+            </div>
+          </nav>
+        </GlassSurface>
+
+        {/* 搜索副岛：独立的圆形 GlassSurface */}
+        <GlassSurface
+          className="dock-glass dock-glass--circle"
+          width="var(--dock-h)"
+          height="var(--dock-h)"
+          borderRadius={999}
+          backgroundOpacity={0.06}
+          saturation={1.2}
+        >
+          <button
+            type="button"
+            className="search-island"
+            aria-label="搜索文章"
+            ref={triggerRef}
+            onClick={() => setOpen(true)}
+          >
+            <svg {...ICON_PROPS}>{ICON.search}</svg>
+          </button>
+        </GlassSurface>
       </div>
 
       {open && (

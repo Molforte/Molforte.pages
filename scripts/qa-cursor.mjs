@@ -1,7 +1,11 @@
 import { chromium } from 'playwright-core'
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const BASE = 'http://127.0.0.1:4173/Molforte.pages'
-const browser = await chromium.launch({ executablePath: EDGE, headless: true, args: ['--disable-gpu'] })
+const browser = await chromium.launch({
+  executablePath: EDGE,
+  headless: true,
+  args: ['--disable-gpu'],
+})
 
 const measure = async (page) => {
   return page.evaluate(() => {
@@ -58,7 +62,10 @@ const away = await measure(p)
 console.log(JSON.stringify({ overText, away }, null, 2))
 
 // 2) reduced motion 不应挂载 canvas
-const ctx2 = await browser.newContext({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' })
+const ctx2 = await browser.newContext({
+  viewport: { width: 1366, height: 900 },
+  reducedMotion: 'reduce',
+})
 const p2 = await ctx2.newPage()
 await p2.goto(BASE + '/', { waitUntil: 'networkidle' })
 const b2 = await p2.locator('.masthead__title').boundingBox()

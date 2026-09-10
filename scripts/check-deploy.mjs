@@ -29,7 +29,9 @@ const get = (url) =>
 
 console.log('== 1. 最近的部署 workflow ==')
 try {
-  const runs = JSON.parse((await get(`https://api.github.com/repos/${REPO}/actions/runs?per_page=3`)).body)
+  const runs = JSON.parse(
+    (await get(`https://api.github.com/repos/${REPO}/actions/runs?per_page=3`)).body,
+  )
   for (const run of runs.workflow_runs || []) {
     console.log(`  ${run.name} | ${run.status}/${run.conclusion} | ${run.head_sha.slice(0, 7)}`)
     if (run.name === 'Deploy to GitHub Pages') {

@@ -269,29 +269,35 @@ a {
   pointer-events: auto;
 }
 
-/* —— 主岛：只有图标，文字悬浮时才浮现 —— */
+/* —— 主岛内容：玻璃由 React Bits <GlassSurface /> 提供，这里只管排版 —— */
 .apptabbar {
   position: relative;
   display: flex;
-  flex: 0 1 auto;
-  min-width: 0;
-  width: min(72vw, 54rem); /* 主岛：整体更紧凑 */
-  min-height: var(--dock-h);
+  align-items: center;
+  width: 100%;
+  height: 100%;
   padding: 0.22rem;
-  border-radius: 2rem;
-  /* 边缘：环状渐变高光（上亮、侧淡、下回光），比均匀 1px 白线自然 */
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
-    var(--glass-rim) border-box;
-  -webkit-backdrop-filter: blur(16px) saturate(1.25);
-  backdrop-filter: blur(16px) saturate(1.25);
-  box-shadow: var(--glass-shadow);
+}
+
+/* —— GlassSurface 接入 dock 的适配 —— */
+.dock-glass {
+  flex: 0 0 auto;
+  overflow: visible; /* 让悬浮文字气泡能溢出岛外，不被裁掉 */
+}
+
+.dock-glass .glass-surface__content {
+  padding: 0; /* 内边距交给 .apptabbar 自己控制 */
+}
+
+.dock-glass--circle {
+  transition: transform 0.15s ease;
+}
+
+.dock-glass--circle:hover {
+  transform: scale(1.04);
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .apptabbar,
-  .search-island,
   .search-panel {
     border-color: transparent;
     background:
@@ -398,32 +404,22 @@ a {
   }
 }
 
-/* —— 搜索副岛：直径与主岛高度一致的小圆岛，垂直居中对齐 —— */
+/* —— 搜索副岛：外层是圆形 GlassSurface，这里只是里面的按钮 —— */
 .search-island {
   position: relative;
-  width: var(--dock-h);
-  height: var(--dock-h);
-  flex: none;
+  width: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
-    var(--glass-rim) border-box;
-  -webkit-backdrop-filter: blur(16px) saturate(1.25);
-  backdrop-filter: blur(16px) saturate(1.25);
+  border: 0;
+  background: transparent;
   color: var(--text-2);
   cursor: pointer;
-  transition:
-    color 0.15s ease,
-    transform 0.15s ease;
-  box-shadow: var(--glass-shadow);
+  transition: color 0.15s ease;
 }
 
 .search-island:hover {
   color: var(--text);
-  transform: scale(1.04);
 }
 
 .search-island:focus-visible {
@@ -1268,7 +1264,6 @@ a {
 
   .apptabbar {
     padding: 0.18rem;
-    border-radius: 1.7rem;
   }
 
   .apptabbar__tab {

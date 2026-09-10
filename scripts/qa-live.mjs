@@ -5,7 +5,11 @@ import { chromium } from 'playwright-core'
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const SITE = 'https://molforte.github.io/Molforte.pages'
 
-const browser = await chromium.launch({ executablePath: EDGE, headless: true, args: ['--disable-gpu'] })
+const browser = await chromium.launch({
+  executablePath: EDGE,
+  headless: true,
+  args: ['--disable-gpu'],
+})
 const out = {}
 
 // —— 首页 ——
@@ -19,7 +23,9 @@ out.home = await p.evaluate(() => ({
   h1: document.querySelector('.masthead__title')?.textContent?.trim(),
   cards: document.querySelectorAll('.post-card').length,
   dock: !!document.querySelector('.dock'),
-  liquidGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes('liquid-glass'),
+  liquidGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes(
+    'liquid-glass',
+  ),
   theme: document.documentElement.dataset.theme,
   hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
 }))
@@ -75,7 +81,9 @@ await p.waitForTimeout(300)
 out.themeToggle = await p.evaluate(() => ({
   theme: document.documentElement.dataset.theme,
   bodyBg: getComputedStyle(document.body).backgroundColor,
-  stillGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes('liquid-glass'),
+  stillGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes(
+    'liquid-glass',
+  ),
 }))
 
 // —— 404 ——

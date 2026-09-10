@@ -21,25 +21,23 @@
 ```text
 content/                # 所有文章，一篇一个 .md
 content/pages/          # 静态单页：about.md（关于）、friends.md（友链）…
-third_party/
-  liquid-glass/         # 第三方液态玻璃原件（MIT，© Shu Ding）+ LICENSE + 说明
 .github/workflows/      # GitHub Actions：push 到 main 自动构建并部署 Pages
 public/favicon.svg
 scripts/
   serve-dist.mjs        # 本地模拟 GitHub Pages 的静态服务器
-  qa-*.mjs              # 可选：无头 Edge 渲染 / 审计脚本
+  check-deploy.mjs      # 部署检查（CI 状态 + 线上服务的是源码还是产物）
+  qa-*.mjs              # 可选：无头 Edge 渲染 / 审计 / 线上验收脚本
 src/
   site.js               # 站点设置（标题、署名、导语……）
   theme.js              # 深浅色切换（跟随系统 + 手动记忆）
   lib/content.js        # 读 content/、解析 frontmatter、排序、按项目分组
-  lib/liquidGlass.js    # 底栏液态玻璃（适配自 shuding/liquid-glass）
   lib/markdown.js       # Markdown -> HTML（站外链接新开页）
   lib/highlight.js      # 按需注册的语言
-  components/           # BottomDock（悬浮岛 + 搜索）/ BlendCursor / Footer
+  components/           # BottomDock（GlassSurface 玻璃岛 + 搜索）/ BlendCursor / Footer
   pages/                # Home / Archive / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
-vite.config.js          # base 路径与 404.html 回退插件
+vite.config.js          # base 路径（Actions 里自动推断）与 404.html 回退插件
 ```
 
 ## 本地开发
@@ -179,8 +177,10 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 - 小屏（<900px）：内容放宽到接近全宽（`--measure-phone: 46rem` 兜底）；
 - **深色模式**：默认跟随系统（`prefers-color-scheme`），页脚月亮/太阳按钮可手动切换并记忆（localStorage）；首屏前内联脚本已应用主题，无闪烁；
 - 想调宽度：改 `src/styles/global.css` 顶部的 `--measure` 即可；
-- 底部功能区样式（主岛宽 72% / 磨砂浓度 / 悬浮文字 / 搜索副岛 / 选中加深）：
-  全局搜索 `dock`、`apptabbar`、`search-island`、`search-backdrop` 相关规则；
+- 底栏玻璃参数：在 `src/components/BottomDock.jsx` 里传给 `<GlassSurface />`
+  （`borderRadius` / `backgroundOpacity` / `saturation` / `blur` / `distortionScale` 等，
+  完整 props 见组件头部注释与 React Bits 文档）；布局与气泡样式在 `global.css` 的
+  `dock` / `dock-glass` / `apptabbar` / `search-island` / `search-backdrop` 规则里；
 - 深浅色都由 `:root` / `:root[data-theme='dark']` 里的 token 控制，换色只改这两处。
 
 ## 已知取舍
@@ -193,9 +193,13 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 
 站上两个交互效果都不是自创的，来源都在这里说清楚：
 
-1. **底栏液态玻璃** —— 来自 [shuding/liquid-glass](https://github.com/shuding/liquid-glass)
-   （MIT，© 2025 Shu Ding）。原件未改，存在 `third_party/liquid-glass/`；
-   适配层是 `src/lib/liquidGlass.js`，改动说明见该目录 README。
+1. **底栏玻璃** —— 使用 [React Bits](https://reactbits.dev/) 的 `GlassSurface` 组件
+   （JavaScript + CSS 变体），源码在 `src/components/GlassSurface.jsx` / `.css`。
+   相对上游只有两处等价改写（把 SVG 能力探测提为模块级函数 + 惰性初始 state），
+   原因是通过本项目 ESLint；改动已在文件头注明。
+   底栏的两个岛（主岛、搜索圆岛）都由它包裹，玻璃参数在 `BottomDock.jsx` 里传：
+   `borderRadius` / `backgroundOpacity` / `saturation` 等，其余用组件默认值。
+   （早先曾用 shuding/liquid-glass 自适配，现已移除，历史里仍可找回。）
 2. **“札记”标题的悬停效果** —— 复刻 [deepseek.com](https://www.deepseek.com/en/) 首页
    “Into the Unknown” 的差值混合光标：指针进入标题区域后挂一块全屏 canvas
    （`mix-blend-mode: difference`），白色圆点跟随鼠标，**经过文字时反相**；
