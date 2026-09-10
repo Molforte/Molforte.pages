@@ -17,6 +17,8 @@ import {
   copyFileSync,
 } from 'node:fs'
 import { join, extname, basename, relative } from 'node:path'
+// 与站点同一套字数规则：围栏代码块（``` / ~~~，语言任意）与行内代码都不计入
+import { countChars } from '../src/lib/text.js'
 
 const CONFIG = new URL('./obsidian.config.mjs', import.meta.url)
 if (!exists(CONFIG)) {
@@ -334,7 +336,7 @@ for (const v of volList) {
       order: isIndex ? '—' : item.order || '—',
       file: item.file,
       title,
-      chars: (conv.body.match(/[\u4e00-\u9fff]/g) || []).length,
+      chars: countChars(conv.body),
       img: conv.imgJobs.length,
       file2: conv.fileJobs.length,
       links: conv.linksOk,

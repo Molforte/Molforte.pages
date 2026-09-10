@@ -1,4 +1,4 @@
-import { posts } from '../lib/content.js'
+import { posts, countChars } from '../lib/content.js'
 import { SITE } from '../site.js'
 import { useTheme } from '../theme.js'
 import Reveal from './Reveal.jsx'
@@ -56,10 +56,8 @@ export default function Footer() {
   const since = SITE.since
   const { theme, toggle } = useTheme()
 
-  const total = posts.reduce(
-    (sum, p) => sum + (p.content.match(/[\u4e00-\u9fff]/g) || []).length,
-    0,
-  )
+  // 字数只算正文：围栏代码块（``` / ~~~，语言任意）与行内代码都不计入
+  const total = posts.reduce((sum, p) => sum + countChars(p.content), 0)
   const work = nearestWork(total)
   const stat = work
     ? `摩尔已经写完了 ${total.toLocaleString('zh-CN')} 字，好像写完了一本 ${work.author}${work.name} 了啊。`

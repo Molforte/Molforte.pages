@@ -5,6 +5,7 @@
 // 文件名里的日期与 slug 是兜底，frontmatter 优先。
 // ============================================================
 import { parseFrontMatter } from './frontmatter.js'
+import { stripCode, countChars } from './text.js'
 import { volumeIndex } from 'virtual:notes'
 
 // 一行 Vite API：把所有 content/*.md 以纯文本打包进应用。
@@ -97,9 +98,9 @@ export function getNeighbors(slug) {
   }
 }
 
-/** 粗略阅读时长：中文字符按 420 字/分钟，英文按 180 词/分钟 */
+/** 粗略阅读时长：中文字符按 420 字/分钟，英文按 180 词/分钟（代码块不计） */
 export function readingMinutes(md) {
-  const text = md.replace(/```[\s\S]*?```/g, ' ') // 代码块不计
+  const text = stripCode(md)
   const cjk = (text.match(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/g) || []).length
   const en = (text.match(/[A-Za-z0-9]+/g) || []).length
   return Math.max(1, Math.round(cjk / 420 + en / 180))
@@ -109,6 +110,8 @@ export function readingMinutes(md) {
 export function formatDate(iso) {
   return iso || ''
 }
+
+export { countChars, stripCode }
 
 /* ============================================================
    笔记「册」：content/notes/<册>/
