@@ -19,7 +19,7 @@ function excerpt(md, n = 84) {
   return t.length > n ? `${t.slice(0, n)}…` : t
 }
 
-const HOME_COLUMNS = 6
+const HOME_COLUMNS = 2 // 首页只放最近两个项目，其余去归档
 
 export default function Home() {
   useEffect(() => {
@@ -27,6 +27,7 @@ export default function Home() {
   }, [])
 
   const shown = volumes.slice(0, HOME_COLUMNS)
+  const restColumns = volumes.length - shown.length
 
   return (
     <>
@@ -39,26 +40,62 @@ export default function Home() {
         <p className="masthead__tagline">{SITE.tagline}</p>
       </header>
 
-      {/* 首页 = 最近更新的栏目（笔记按「册」组织，入口在归档） */}
+      {/* 一、文章在前 */}
+      {posts.length > 0 && (
+        <section className="home-section">
+          <h2 className="home-section__title">文章</h2>
+          <ol className="post-index">
+            {posts.map((post, index) => (
+              <li className="post-card" key={post.slug} style={{ '--i': Math.min(index, 8) }}>
+                <Link className="post-card__link" to={`/post/${post.slug}`}>
+                  <h3 className="post-card__title">{post.title}</h3>
+                  <p className="post-card__summary">{post.summary}</p>
+                  <p className="post-card__meta">
+                    <time className="post-card__date" dateTime={post.date}>
+                      {formatDate(post.date)}
+                    </time>
+                    {post.tags.map((tag) => (
+                      <span className="post-card__tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                    <span className="post-card__read">约 {post.minutes} 分钟</span>
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {/* 二、项目（栏目）只放最近两个，其余去归档 */}
       {shown.length > 0 && (
-        <section className="columns">
-          {shown.map((v, index) => (
-            <article className="column-card" key={v.slug} style={{ '--i': Math.min(index, 6) }}>
-              <Link className="column-card__link" to={`/notes/${v.slug}`}>
-                <p className="column-card__series">
-                  {v.series && <span>{v.series}</span>}
-                  <span className="column-card__count">{v.notes.length} 篇</span>
-                </p>
-                <h2 className="column-card__title">{v.title}</h2>
-                <p className="column-card__excerpt">{excerpt(getVolumeIntro(v.slug))}</p>
-                <p className="column-card__foot">
-                  <span>
-                    最后更新 <time dateTime={v.updated}>{formatDate(v.updated)}</time>
-                  </span>
-                </p>
-              </Link>
-            </article>
-          ))}
+        <section className="home-section">
+          <h2 className="home-section__title">项目</h2>
+          <div className="columns">
+            {shown.map((v, index) => (
+              <article className="column-card" key={v.slug} style={{ '--i': Math.min(index, 6) }}>
+                <Link className="column-card__link" to={`/notes/${v.slug}`}>
+                  <p className="column-card__series">
+                    {v.series && <span>{v.series}</span>}
+                    <span className="column-card__count">{v.notes.length} 篇</span>
+                  </p>
+                  <h3 className="column-card__title">{v.title}</h3>
+                  <p className="column-card__excerpt">{excerpt(getVolumeIntro(v.slug))}</p>
+                  <p className="column-card__foot">
+                    <span>
+                      最后更新 <time dateTime={v.updated}>{formatDate(v.updated)}</time>
+                    </span>
+                  </p>
+                </Link>
+              </article>
+            ))}
+          </div>
+          <p className="home-foot">
+            <Link to="/archive">
+              {restColumns > 0 ? `还有 ${restColumns} 个项目 · 全部项目 →` : '全部项目 →'}
+            </Link>
+          </p>
         </section>
       )}
 
@@ -70,30 +107,6 @@ export default function Home() {
             <Link to="/archive">共 {volumes.length} 个栏目 · 去归档 →</Link>
           )}
         </p>
-      )}
-
-      {posts.length > 0 && (
-        <ol className="post-index">
-          {posts.map((post, index) => (
-            <li className="post-card" key={post.slug} style={{ '--i': Math.min(index, 8) }}>
-              <Link className="post-card__link" to={`/post/${post.slug}`}>
-                <h2 className="post-card__title">{post.title}</h2>
-                <p className="post-card__summary">{post.summary}</p>
-                <p className="post-card__meta">
-                  <time className="post-card__date" dateTime={post.date}>
-                    {formatDate(post.date)}
-                  </time>
-                  {post.tags.map((tag) => (
-                    <span className="post-card__tag" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                  <span className="post-card__read">约 {post.minutes} 分钟</span>
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ol>
       )}
     </>
   )
