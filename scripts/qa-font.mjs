@@ -1,6 +1,7 @@
 // 字体验收：Sarasa Mono SC 子集是否被加载、且真的等宽。
 // 用法：node scripts/qa-font.mjs            （本地 4173）
 //       QA_BASE=https://molforte.github.io/Molforte.pages node scripts/qa-font.mjs
+//       QA_WAIT=load 可放宽等待条件（线上首屏偶尔等不到 networkidle）
 import { chromium } from 'playwright-core'
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
@@ -18,12 +19,15 @@ page.on('response', (r) => {
     fontResponses.push(`${r.status()} ${r.url().split('/').pop()}`)
 })
 
-await page.goto(`${BASE}/post/how-this-site-is-built`, { waitUntil: 'networkidle' })
+await page.goto(`${BASE}/post/how-this-site-is-built`, {
+  waitUntil: process.env.QA_WAIT || 'networkidle',
+  timeout: 60000,
+})
 
-// 等字体真正就绪（最多 4 秒）
+// 等字体真正就绪（最多 8 秒；线上首屏较慢）
 const ready = await page
   .waitForFunction(() => document.fonts.check('16px "Sarasa Mono SC Web"', 'const 札记'), null, {
-    timeout: 4000,
+    timeout: 8000,
   })
   .then(() => true)
   .catch(() => false)

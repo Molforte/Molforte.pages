@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { getPage } from '../lib/content.js'
 import { renderMarkdown } from '../lib/markdown.js'
-import hljs from '../lib/highlight.js'
+import { highlightCodeBlock } from '../lib/highlight.js'
 import { SITE } from '../site.js'
 import NotFound from './NotFound.jsx'
 import Reveal from '../components/Reveal.jsx'
@@ -20,11 +20,7 @@ export default function StaticPage({ slug }) {
   useEffect(() => {
     if (!bodyRef.current) return
     bodyRef.current.querySelectorAll('pre code').forEach((el) => {
-      try {
-        hljs.highlightElement(el)
-      } catch {
-        /* 未知语言时保持原样 */
-      }
+      highlightCodeBlock(el)
     })
   }, [html])
 

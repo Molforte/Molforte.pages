@@ -27,6 +27,8 @@ scripts/
   serve-dist.mjs        # 本地模拟 GitHub Pages 的静态服务器
   check-deploy.mjs      # 部署检查（CI 状态 + 线上服务的是源码还是产物）
   qa-*.mjs              # 可选：无头 Edge 渲染 / 审计 / 线上验收脚本
+  qa-code.mjs           # 代码块验收：高亮生效、纯文本块不着色、无未知语言告警
+  qa-font.mjs           # 字体验收：Sarasa 子集已加载且真等宽（QA_WAIT=load 可放宽等待）
 src/
   site.js               # 站点设置（标题、署名、导语……）
   theme.js              # 深浅色切换（跟随系统 + 手动记忆）
@@ -77,38 +79,38 @@ title: 一篇新文章
 date: 2026-09-09
 tags: [随笔, 前端]
 summary: 不写会自动从正文第一段截取。
-draft: false   # true = 暂不发布
+draft: false # true = 暂不发布
 ---
 
 正文从这里开始，支持标准的 GitHub 风格 Markdown：
 
 - 表格、任务列表（gfm）
-- 代码块自动高亮：```js / ```bash / ```yaml / ```html …
+- 代码块自动高亮：`js / `bash / `yaml / `html …
 - 链接、引用、图片……
 ````
 
 frontmatter 字段说明（约定单行书写）：
 
-| 字段 | 说明 |
-| --- | --- |
-| title | 标题，必填 |
-| date | `YYYY-MM-DD`；缺省用文件名里的日期 |
-| project | 项目名（可选）；归档页按它分组 |
-| tags | `[a, b]` 数组 |
-| summary | 摘要；缺省自动取正文第一段 |
-| slug | 覆盖 URL 中的 slug；缺省用文件名 |
-| draft | `true` 时不出现在站点上 |
+| 字段    | 说明                               |
+| ------- | ---------------------------------- |
+| title   | 标题，必填                         |
+| date    | `YYYY-MM-DD`；缺省用文件名里的日期 |
+| project | 项目名（可选）；归档页按它分组     |
+| tags    | `[a, b]` 数组                      |
+| summary | 摘要；缺省自动取正文第一段         |
+| slug    | 覆盖 URL 中的 slug；缺省用文件名   |
+| draft   | `true` 时不出现在站点上            |
 
 ## 路由
 
-| 路径 | 页面 |
-| --- | --- |
-| `/` | 主页（文章列表） |
-| `/archive` | 归档（按 project 字段分组） |
-| `/friends` | 友链（编辑 `content/pages/friends.md`） |
-| `/about` | 关于（编辑 `content/pages/about.md`） |
-| `/post/:slug` | 单篇文章 |
-| 其它 | 404 |
+| 路径          | 页面                                    |
+| ------------- | --------------------------------------- |
+| `/`           | 主页（文章列表）                        |
+| `/archive`    | 归档（按 project 字段分组）             |
+| `/friends`    | 友链（编辑 `content/pages/friends.md`） |
+| `/about`      | 关于（编辑 `content/pages/about.md`）   |
+| `/post/:slug` | 单篇文章                                |
+| 其它          | 404                                     |
 
 ## 站点配置
 
@@ -145,11 +147,11 @@ frontmatter 字段说明（约定单行书写）：
 
 `vite.config.js` 在 Actions 里会用 `GITHUB_REPOSITORY` 自动推断：
 
-| 仓库 | base |
-| --- | --- |
-| `Molforte/Molforte.pages`（项目站点） | `/Molforte.pages/` |
-| `Molforte/Molforte.github.io`（用户站点） | `/` |
-| 本地构建（无环境变量） | 兜底 `/Molforte.pages/` |
+| 仓库                                      | base                    |
+| ----------------------------------------- | ----------------------- |
+| `Molforte/Molforte.pages`（项目站点）     | `/Molforte.pages/`      |
+| `Molforte/Molforte.github.io`（用户站点） | `/`                     |
+| 本地构建（无环境变量）                    | 兜底 `/Molforte.pages/` |
 
 要手动指定（例如换了仓库名、或自定义域名部署在根路径）：
 `VITE_BASE=/新路径/ npm run build`。改过仓库地址的话，顺手把
@@ -163,13 +165,13 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 
 ### 排查
 
-| 现象 | 原因 |
-| --- | --- |
-| push 报 `Connection was reset` | 本机 hosts/Steam++ 拦截了 github，先关掉加速 |
-| 页面能开但样式/JS 404 | base 不符：确认仓库名，或用 `VITE_BASE` 指定 |
-| Actions 找不到 Pages | Settings → Pages → Source 要选 **GitHub Actions** |
-| 刚部署完访问 404 | 首次部署要等 1–2 分钟，或强刷（CDN 缓存） |
-| 深链刷新 404（状态码） | 正常：`404.html` 内容就是应用，页面仍会正常渲染 |
+| 现象                           | 原因                                              |
+| ------------------------------ | ------------------------------------------------- |
+| push 报 `Connection was reset` | 本机 hosts/Steam++ 拦截了 github，先关掉加速      |
+| 页面能开但样式/JS 404          | base 不符：确认仓库名，或用 `VITE_BASE` 指定      |
+| Actions 找不到 Pages           | Settings → Pages → Source 要选 **GitHub Actions** |
+| 刚部署完访问 404               | 首次部署要等 1–2 分钟，或强刷（CDN 缓存）         |
+| 深链刷新 404（状态码）         | 正常：`404.html` 内容就是应用，页面仍会正常渲染   |
 
 ## 布局与定制
 
@@ -187,13 +189,13 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 
 ### 1）圆角只用这几档（对齐苹果）
 
-| token | 值 | 用在哪 |
-| --- | --- | --- |
-| `--r-xs` | 8px | 标签芯片、悬浮气泡、行内代码 |
-| `--r-sm` | 12px | 图标按钮（主题切换） |
-| `--r-md` | 16px | 列表行、图片、代码块 |
-| `--r-lg` | 20px | 卡片、归档 hero、归档分组卡 |
-| `--r-xl` | 28px | 搜索浮层 |
+| token      | 值    | 用在哪                          |
+| ---------- | ----- | ------------------------------- |
+| `--r-xs`   | 8px   | 标签芯片、悬浮气泡、行内代码    |
+| `--r-sm`   | 12px  | 图标按钮（主题切换）            |
+| `--r-md`   | 16px  | 列表行、图片、代码块            |
+| `--r-lg`   | 20px  | 卡片、归档 hero、归档分组卡     |
+| `--r-xl`   | 28px  | 搜索浮层                        |
 | `--r-pill` | 999px | 胶囊（底栏标签/选中胶囊）、圆形 |
 
 底栏两个岛的半径由 `GlassSurface` 以数值 props 传：主岛 **34px**（= 岛高一半，胶囊）、

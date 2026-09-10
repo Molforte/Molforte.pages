@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPostBySlug, getNeighbors, formatDate, readingMinutes } from '../lib/content.js'
 import { renderMarkdown } from '../lib/markdown.js'
-import hljs from '../lib/highlight.js'
+import { highlightCodeBlock } from '../lib/highlight.js'
 import { SITE } from '../site.js'
 import NotFound from './NotFound.jsx'
 
@@ -47,11 +47,7 @@ export default function Post() {
   useEffect(() => {
     if (!bodyRef.current) return
     bodyRef.current.querySelectorAll('pre code').forEach((el) => {
-      try {
-        hljs.highlightElement(el)
-      } catch {
-        /* 未知语言时保持原样 */
-      }
+      highlightCodeBlock(el)
     })
   }, [html])
 
