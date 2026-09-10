@@ -67,6 +67,28 @@ const themeIcon = await page.evaluate(() => ({
   iconAnim: getComputedStyle(document.querySelector('.theme-toggle__icon')).animationName,
 }))
 
+// 底栏选中胶囊：与选中格对齐，切换时平滑滑动
+const pillInfo = async () =>
+  page.evaluate(() => {
+    const pill = document.querySelector('.apptabbar__pill')
+    const active = document.querySelector('.apptabbar__tab.is-active')
+    const pr = pill.getBoundingClientRect()
+    const ar = active.getBoundingClientRect()
+    return {
+      active: active.getAttribute('aria-label'),
+      aligns: Math.abs(pr.left - ar.left) < 1.5 && Math.abs(pr.width - ar.width) < 1.5,
+      transition: getComputedStyle(pill).transitionDuration,
+    }
+  })
+const pillBefore = await pillInfo()
+await page.click('.apptabbar__tab[href$="/archive"]')
+await page.waitForTimeout(60)
+const pillMidTransform = await page.evaluate(
+  () => getComputedStyle(document.querySelector('.apptabbar__pill')).transform,
+)
+await page.waitForTimeout(500)
+const pillAfter = await pillInfo()
+
 const arch = await browser.newPage({ viewport: { width: 1366, height: 900 } })
 await arch.goto(BASE + '/archive', { waitUntil: 'networkidle' })
 await arch.waitForTimeout(900)
@@ -97,7 +119,17 @@ const reduce = await rm.evaluate(() => {
 
 console.log(
   JSON.stringify(
-    { home, footerAfterScroll, hover, search, themeIcon, archive, reduce, pageErrors: errors },
+    {
+      home,
+      footerAfterScroll,
+      hover,
+      search,
+      themeIcon,
+      pill: { before: pillBefore, midTransform: pillMidTransform, after: pillAfter },
+      archive,
+      reduce,
+      pageErrors: errors,
+    },
     null,
     2,
   ),

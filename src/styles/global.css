@@ -314,17 +314,21 @@ a {
   display: flex;
   width: 100%;
   gap: 0.15rem;
+  /* 胶囊格与滑动指示器共用这两个值，保证两者始终对齐 */
+  --tab-radius: 1.5rem;
+  --tab-my: 0.1rem;
 }
 
 .apptabbar__tab {
   flex: 1 1 0;
   min-width: 0;
   position: relative;
+  z-index: 1; /* 在滑动指示器之上 */
   display: grid;
   place-items: center;
-  margin: 0.1rem 0.08rem;
+  margin: var(--tab-my) 0.08rem;
   padding: 0.36rem 0;
-  border-radius: 1.5rem; /* 大胶囊格 */
+  border-radius: var(--tab-radius);
   color: var(--text-3);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -385,13 +389,33 @@ a {
   transform: translateX(-50%) translateY(0);
 }
 
-/* 选中：整格加深的大胶囊，约占岛宽的 1/4 */
+/* 选中：由下面那枚滑动胶囊承担底色，标签只负责变色加粗 */
 .apptabbar__tab.is-active {
-  background: var(--active-segment);
+  background: transparent;
   color: var(--text);
+  box-shadow: none;
+}
+
+/* 滑动指示器：切换标签时平滑滑到新位置（在玻璃内部，不影响 backdrop-filter） */
+.apptabbar__pill {
+  position: absolute;
+  left: 0;
+  top: var(--tab-my);
+  bottom: var(--tab-my);
+  border-radius: var(--tab-radius);
+  background: var(--active-segment);
   box-shadow:
     inset 0 1px 1px var(--segment-sheen),
     0 1px 3px rgba(29, 29, 31, 0.06);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.apptabbar__tabs.is-ready .apptabbar__pill {
+  transition:
+    transform 0.34s var(--ease-soft),
+    width 0.34s var(--ease-soft),
+    opacity 0.2s ease;
 }
 
 .apptabbar__tab:focus-visible {
@@ -1269,10 +1293,13 @@ a {
     padding: 0.18rem;
   }
 
+  .apptabbar__tabs {
+    --tab-radius: 1.35rem;
+    --tab-my: 0.08rem;
+  }
+
   .apptabbar__tab {
-    margin: 0.08rem 0.04rem;
     padding: 0.3rem 0;
-    border-radius: 1.35rem;
   }
 
   .apptabbar__icon-wrap {

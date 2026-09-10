@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { posts, formatDate } from '../lib/content.js'
 import GlassSurface from './GlassSurface.jsx'
 
@@ -73,6 +73,32 @@ export default function BottomDock() {
   const inputRef = useRef(null)
   const panelRef = useRef(null)
   const triggerRef = useRef(null)
+
+  // 选中胶囊：跟随当前路由滑动过去（动画做在玻璃内部，避免影响 backdrop-filter）
+  const { pathname } = useLocation()
+  const tabsRef = useRef(null)
+  const [pill, setPill] = useState({ left: 0, width: 0 })
+  const [pillReady, setPillReady] = useState(false)
+
+  useEffect(() => {
+    const measure = () => {
+      const tabs = tabsRef.current
+      if (!tabs) return
+      const active = tabs.querySelector('.apptabbar__tab.is-active')
+      if (!active) {
+        setPill((p) => (p.width === 0 ? p : { ...p, width: 0 }))
+        return
+      }
+      setPill({ left: active.offsetLeft, width: active.offsetWidth })
+    }
+    measure()
+    const raf = requestAnimationFrame(() => setPillReady(true))
+    window.addEventListener('resize', measure)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', measure)
+    }
+  }, [pathname])
 
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
@@ -151,7 +177,16 @@ export default function BottomDock() {
           {...GLASS_TINT}
         >
           <nav className="apptabbar" aria-label="主导航">
-            <div className="apptabbar__tabs">
+            <div className={`apptabbar__tabs${pillReady ? ' is-ready' : ''}`} ref={tabsRef}>
+              <span
+                className="apptabbar__pill"
+                aria-hidden="true"
+                style={{
+                  transform: `translateX(${pill.left}px)`,
+                  width: `${pill.width}px`,
+                  opacity: pill.width ? 1 : 0,
+                }}
+              />
               {TABS.map((tab) => (
                 <NavLink
                   key={tab.to}
