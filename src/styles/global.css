@@ -52,16 +52,24 @@
   --row-hover-bg: rgba(29, 29, 31, 0.035);
   --hl-blue: #0066cc;
 
+  /* 字体：Apple → 苹方；Android → 思源；Microsoft → 雅黑 */
   --sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto,
-    'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC',
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', Roboto, 'Noto Sans CJK SC',
+    'Source Han Sans SC', 'Noto Sans SC', 'Segoe UI', 'Microsoft YaHei', 'Hiragino Sans GB',
+    system-ui, sans-serif;
+  /* 代码：Sarasa Mono（自托管精简子集）；缺字回落到系统等宽 */
   --mono:
-    ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas,
-    'Liberation Mono', monospace;
+    'Sarasa Mono SC', ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Code', 'JetBrains Mono',
+    Menlo, Consolas, monospace;
 
   --gutter: clamp(1.5rem, 6vw, 2.5rem);
-  --radius: 10px;
+  /* 圆角体系：按苹果常用档位收敛，全站只用这几档 */
+  --r-xs: 8px; /* 芯片/标签 */
+  --r-sm: 12px; /* 小控件、图片 */
+  --r-md: 16px; /* 输入、列表行、代码块 */
+  --r-lg: 20px; /* 卡片、面板 */
+  --r-xl: 28px; /* 大浮层 */
+  --r-pill: 999px; /* 胶囊、圆形 */
 
   /* 布局：全站统一内容宽度（比之前更宽、不追 60%） */
   --measure: min(76vw, 60rem); /* 所有页面共用；超宽屏封顶 60rem */
@@ -151,7 +159,7 @@ a {
 :focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
 }
 
 #root {
@@ -218,7 +226,7 @@ a {
   margin: -0.4rem -0.4rem 0 0; /* 抵消右/上边距，视觉上贴角 */
   padding: 0.55rem;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-2);
   cursor: pointer;
@@ -315,7 +323,7 @@ a {
   width: 100%;
   gap: 0.15rem;
   /* 胶囊格与滑动指示器共用这两个值，保证两者始终对齐 */
-  --tab-radius: 1.5rem;
+  --tab-radius: var(--r-pill);
   --tab-my: 0.1rem;
 }
 
@@ -370,7 +378,7 @@ a {
   font-size: 0.72rem;
   line-height: 1.4;
   padding: 0.35em 0.8em;
-  border-radius: 0.5rem;
+  border-radius: var(--r-xs);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
@@ -421,7 +429,7 @@ a {
 .apptabbar__tab:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 1px;
-  border-radius: 1.2rem;
+  border-radius: var(--tab-radius);
 }
 
 /* 触屏没有 hover：完全不显示文字，仅靠 aria-label 可达 */
@@ -484,7 +492,7 @@ a {
     var(--glass-rim) border-box;
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
-  border-radius: 1.4rem;
+  border-radius: var(--r-xl);
   box-shadow: var(--panel-shadow);
   overflow: hidden;
 }
@@ -502,7 +510,7 @@ a {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 1rem 1.2rem;
+  padding: calc(var(--r-xl) * 0.55) var(--r-xl); /* 左右 = 圆角半径 */
   border-bottom: 1px solid var(--hairline);
   color: var(--text-2);
 }
@@ -541,7 +549,7 @@ a {
   display: flex;
   align-items: baseline;
   gap: 1.2rem;
-  padding: 0.6rem 1.2rem;
+  padding: calc(var(--r-xl) * 0.35) var(--r-xl); /* 左右 = 圆角半径 */
   color: var(--text);
   text-decoration: none;
 }
@@ -564,7 +572,7 @@ a {
 
 .search-panel__hint {
   margin: 0;
-  padding: 1.2rem;
+  padding: calc(var(--r-xl) * 0.5) var(--r-xl);
   color: var(--text-3);
   font-size: 0.9rem;
 }
@@ -632,7 +640,7 @@ a {
   height: 12.5rem; /* 固定舒适高度（更矮） */
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--card-shadow);
   transition:
@@ -651,7 +659,7 @@ a {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 1.15rem 1.7rem 1.25rem;
+  padding: var(--r-lg); /* = 圆角半径 */
   color: var(--text);
   text-decoration: none;
 }
@@ -704,7 +712,7 @@ a {
 .post-card__tag {
   background: var(--chip-bg);
   color: var(--text-2);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   padding: 0.16em 0.6em;
   font-size: 0.72rem;
   line-height: 1.5;
@@ -718,7 +726,7 @@ a {
 .post-card__link:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
-  border-radius: 18px;
+  border-radius: var(--r-lg);
 }
 
 .home-foot {
@@ -887,7 +895,7 @@ a {
 /* 行内代码 */
 .post-body :not(pre) > code {
   background: var(--bg-soft);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   padding: 0.14em 0.45em;
   font-family: var(--mono);
   font-size: 0.86em;
@@ -896,9 +904,9 @@ a {
 /* 代码块 */
 .post-body pre {
   margin: 1.9em 0;
-  padding: 1.1rem 1.25rem;
+  padding: var(--r-md); /* = 圆角半径 */
   background: var(--bg-soft);
-  border-radius: var(--radius);
+  border-radius: var(--r-md);
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.75;
@@ -949,7 +957,7 @@ a {
 .post-body img {
   display: block;
   margin: 2em auto;
-  border-radius: 12px;
+  border-radius: var(--r-md);
 }
 
 /* 任务列表 */
@@ -1077,8 +1085,8 @@ a {
 .archive-hero {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 18px;
-  padding: 2rem 2.2rem 2.1rem;
+  border-radius: var(--r-lg);
+  padding: var(--r-lg); /* = 圆角半径 */
   margin-bottom: 2.6rem;
   box-shadow: var(--card-shadow);
 }
@@ -1128,7 +1136,7 @@ a {
 .archive-group-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--card-shadow);
 }
@@ -1141,7 +1149,7 @@ a {
   display: flex;
   align-items: baseline;
   gap: 0.6rem;
-  padding: 1.2rem 1.4rem 1.1rem;
+  padding: var(--r-lg) var(--r-lg) calc(var(--r-lg) * 0.6); /* 左右 = 圆角半径 */
 }
 
 .archive-group-card__name {
@@ -1167,10 +1175,10 @@ a {
   display: flex;
   align-items: center;
   gap: 1.1rem;
-  padding: 1.05rem 1.4rem;
+  padding: calc(var(--r-lg) * 0.55) var(--r-lg); /* 左右 = 圆角半径 */
   color: var(--text);
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   transition: background 0.15s ease;
 }
 
@@ -1210,7 +1218,7 @@ a {
 .archive-row__tag {
   background: var(--chip-bg);
   color: var(--text-2);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   padding: 0.14em 0.55em;
   font-size: 0.7rem;
   line-height: 1.5;
@@ -1294,7 +1302,7 @@ a {
   }
 
   .apptabbar__tabs {
-    --tab-radius: 1.35rem;
+    --tab-radius: var(--r-pill);
     --tab-my: 0.08rem;
   }
 
