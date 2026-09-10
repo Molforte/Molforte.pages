@@ -56,6 +56,17 @@ const ICON_PROPS = {
   'aria-hidden': 'true',
 }
 
+// 玻璃参数（两个岛共用）。色散/RGB 分离由三个通道的额外位移决定，
+// GlassSurface 默认是 0 / 10 / 20，偏明显；这里压低到 0 / 5 / 10。
+// 想完全没有 RGB 分离：三个都设 0；想更明显：往 0 / 20 / 40 调。
+const GLASS_TINT = {
+  backgroundOpacity: 0.06,
+  saturation: 1.2,
+  redOffset: 0,
+  greenOffset: 5,
+  blueOffset: 10,
+}
+
 export default function BottomDock() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -137,8 +148,7 @@ export default function BottomDock() {
           width="min(72vw, 54rem)"
           height="var(--dock-h)"
           borderRadius={34}
-          backgroundOpacity={0.06}
-          saturation={1.2}
+          {...GLASS_TINT}
         >
           <nav className="apptabbar" aria-label="主导航">
             <div className="apptabbar__tabs">
@@ -170,8 +180,7 @@ export default function BottomDock() {
           width="var(--dock-h)"
           height="var(--dock-h)"
           borderRadius={999}
-          backgroundOpacity={0.06}
-          saturation={1.2}
+          {...GLASS_TINT}
         >
           <button
             type="button"
