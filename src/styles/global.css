@@ -16,16 +16,17 @@
   --link: #0071e3;
   --link-hover: #0077ed;
 
-  /* 主题可切换的材质 token（亮/暗由 html[data-theme] 切换） */
   --selection: rgba(0, 113, 227, 0.16);
   --accent-hover: rgba(0, 113, 227, 0.07);
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-solid: rgba(255, 255, 255, 0.94);
+
+  /* 液态玻璃材质：刻意不随主题变化。
+     纯玻璃 = 折射 + 边缘，不用面色、不用渐变；下面是同一份材质 */
+  --glass-bg: rgba(130, 130, 140, 0.16);
+  --glass-border: rgba(255, 255, 255, 0.38);
+  --glass-solid: rgba(255, 255, 255, 0.94); /* 仅无 backdrop-filter 时的兜底（此值随主题） */
   --glass-shadow:
-    0 8px 28px rgba(29, 29, 31, 0.08), 0 2px 8px rgba(29, 29, 31, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  --glass-sheen-top: rgba(255, 255, 255, 0.5);
+    0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   --segment-sheen: rgba(255, 255, 255, 0.45);
   --active-segment: rgba(29, 29, 31, 0.09);
   --tooltip-bg: rgba(29, 29, 31, 0.92);
@@ -79,14 +80,8 @@
 
   --selection: rgba(10, 132, 255, 0.35);
   --accent-hover: rgba(10, 132, 255, 0.18);
-  --glass-bg: rgba(22, 22, 24, 0.66);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  /* 玻璃材质不在此覆盖（与浅色共用同一份），只覆盖无 backdrop-filter 时的兜底色 */
   --glass-solid: rgba(28, 28, 30, 0.9);
-  --glass-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  /* 深色不用面渐变高光（那会显旧），改用上面 1px 内边缘提亮 */
-  --glass-sheen-top: transparent;
   --segment-sheen: rgba(255, 255, 255, 0.12);
   --active-segment: rgba(255, 255, 255, 0.12);
   --tooltip-bg: rgba(255, 255, 255, 0.95);
@@ -286,26 +281,11 @@ a {
   box-shadow: var(--glass-shadow);
 }
 
-/* 顶部高光：更克制 */
-.apptabbar::before {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: linear-gradient(180deg, var(--glass-sheen-top), rgba(255, 255, 255, 0) 42%);
-  pointer-events: none;
-}
-
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .apptabbar,
   .search-island {
     background: var(--glass-solid);
   }
-}
-
-/* 深色下不要那层“面渐变”高光（显旧），只留 1px 内边缘 */
-:root[data-theme='dark'] .apptabbar::before {
-  background: none;
 }
 
 .apptabbar__tabs {
