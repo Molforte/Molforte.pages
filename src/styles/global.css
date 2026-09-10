@@ -295,12 +295,9 @@ a {
   padding: 0; /* 内边距交给 .apptabbar 自己控制 */
 }
 
-.dock-glass--circle {
-  transition: transform 0.15s ease;
-}
-
-.dock-glass--circle:hover {
-  transform: scale(1.04);
+/* 圆岛 hover：只放大内部图标，不动玻璃根节点（transform 会让玻璃失效） */
+.dock-glass--circle:hover .search-island svg {
+  scale: 1.12;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -436,6 +433,7 @@ a {
 .search-island svg {
   width: 1.35rem;
   height: 1.35rem;
+  transition: scale var(--dur-fast) ease;
 }
 
 /* —— 搜索浮层 —— */
@@ -1453,11 +1451,9 @@ a {
   translate: 0 0;
 }
 
-/* 底栏：整体上浮入场；选中的图标弹一下；悬停微抬 */
-.dock {
-  animation: dock-in var(--dur-slow) var(--ease-soft) both;
-}
-
+/* 底栏：注意不要给 .dock / .glass-surface 加 transform / opacity 动画或过渡，
+   那会给 backdrop-filter 制造新的 backdrop root，玻璃会失效（实测像素差异≈0）。
+   所以入场动效只做在岛内部（图标层）。 */
 .apptabbar__tab.is-active .apptabbar__icon-wrap {
   animation: pop-in 0.32s var(--ease-soft);
 }
