@@ -19,11 +19,15 @@
 ## 目录结构
 
 ```text
-content/                # 所有文章，一篇一个 .md
-content/pages/          # 静态单页：about.md（关于）、friends.md（友链）…
-content/notes/<册>/     # 笔记「册」：<笔记>.md + index.md（册首页），一册 = 归档里的一个栏目
-content/notes/<册>/index.md   # 册首页（Obsidian 的 README/@ 索引页转换而来）
-public/images/<册>/     # 该册引用的图片（只搬用到的）
+articles/               # 文章库（独立仓库 Molforte/molforte.Articles，目标做成 submodule）
+  Projects/<册>/        # 一册一个目录（= 归档里的一个栏目）
+    <笔记>.md           #   笔记：01- 或 第一章- 前缀决定顺序
+    index.md            #   册首页（Obsidian 的 README/@ 索引页转换而来）
+    img/  files/        #   该册引用的图片与附件（构建期物化到 public/，站点库不存图）
+  Articles/             # 独立文章（按日期；首页与归档的「文章」）
+  Fragments/            # 残页（归档的「碎片」）
+content/pages/          # 站点自己的静态单页：about.md（关于）、friends.md（友链）…
+public/images/<册>/     # ↑ 构建期从 articles/Projects/<册>/img 物化而来（已 gitignore）
 .github/workflows/      # GitHub Actions：push 到 main 自动构建并部署 Pages
 public/favicon.svg
 scripts/
@@ -68,22 +72,28 @@ npm run build      # 产物在 dist/
 阅读时长、同步脚本报告都走这一份规则（笔记正文字数在构建期由 `vite.config.js` 的
 `notes-index` 插件算好，正文本身不进包）。
 
-## 笔记（Obsidian → 归档里的「栏目」）
+## 内容：文章库 articles/（三分）
 
-一「册」= vault 里一个叶子目录（含 `README.md` / `01-` 编号笔记 / `img/` 的那种），
-在站点上就是**归档页的一个栏目**：`/archive` 列出所有栏目 → `/notes/<册>` 是它的首页
-（渲染该册 README/目录 + 按编号排的笔记列表）→ `/notes/<册>/<笔记>` 是单篇。
+内容单独放在 **[Molforte/molforte.Articles](https://github.com/Molforte/molforte.Articles)**，
+站内挂在 `articles/`（目标形态是 submodule）：
 
-命名与显示规则：
+| 文件夹           | 放什么                                   | 站点上                              |
+| ---------------- | ---------------------------------------- | ----------------------------------- |
+| `Projects/<册>/` | 一册一个目录：笔记 + `index.md` + `img/` | 归档的**栏目** → 册首页 → 单篇笔记  |
+| `Articles/`      | 独立文章（`YYYY-MM-DD-slug.md`）         | 首页与归档的**文章**                |
+| `Fragments/`     | 残页                                     | 归档的**碎片** → `/fragment/<slug>` |
 
-| vault 里                            | 站点上                                                                      |
-| ----------------------------------- | --------------------------------------------------------------------------- |
-| `01-LED指示灯的基本操作.md`         | 标题 `LED指示灯的基本操作` + 顺序角标 `01`（编号只用于排序）                |
-| `0a-准备.md` / `16-DS18B20….md`     | `0a` 排在 `01` 前，`16` 排在 `06` 后（数字+字母自然序）                     |
-| `README.md` / `@xxx.md`             | 该册的首页（栏目落地页）                                                    |
-| `img/x.png`（被 `![[x.png]]` 引用） | 复制到 `public/images/<册>/x.png`，正文里用 `{{IMG:x.png}}`                 |
-| `[[另一篇]]`                        | 站内链接 `{{NOTE:<册>/<笔记>}}`；指向未发布笔记的降级成纯文本（不泄露标题） |
-| `created:` 或文件时间               | 显示成「最后更新」                                                          |
+一「册」= 一个教程序列 / 主题笔记集（vault 里的叶子目录）。命名与显示规则：
+
+| 内容里                                 | 站点上                                                                      |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| `01-LED指示灯的基本操作.md`            | 标题 `LED指示灯的基本操作` + 顺序角标 `01`（编号只用于排序）                |
+| `0a-准备.md` / `16-DS18B20….md`        | `0a` 排在 `01` 前，`16` 排在 `06` 后（数字+字母自然序）                     |
+| `第一章-电阻器.md` / `第9章-蜂鸣器.md` | 中文数字编号同样认，角标显示 `1` / `9`                                      |
+| `index.md`                             | 该册首页（栏目落地页）                                                      |
+| `img/x.png`（被 `![[x.png]]` 引用）    | 随册存放，构建期物化到 `public/images/<册>/`，正文里用 `{{IMG:x.png}}`      |
+| `[[另一篇]]`                           | 站内链接 `{{NOTE:<册>/<笔记>}}`；指向未发布笔记的降级成纯文本（不泄露标题） |
+| `created:` 或文件时间                  | 显示成「最后更新」                                                          |
 
 **加一册**（同步白名单即发布闸门，没列进去的册根本不会被读）：
 
@@ -92,16 +102,29 @@ cp scripts/obsidian.config.example.mjs scripts/obsidian.config.mjs   # 首次；
 # 编辑 volumes：vaultPath / slug / title / series / project
 node scripts/scan-vault.mjs "D:\path\to\vault"     # 可选：先盘点（链接/公式/图片用量）
 node scripts/sync-obsidian.mjs                     # dry-run：只出报告与 .qa/ 预览，不写文件
-node scripts/sync-obsidian.mjs --write             # 真正写入 content/notes/ 与 public/images/
+node scripts/sync-obsidian.mjs --write             # 写入 articles/Projects/<册>/（含 img/）
 npm run build && node scripts/serve-dist.mjs       # 本地看效果
 ```
 
-**册清单不落盘**：`vite.config.js` 里的 `notes-index` 插件在构建期扫 `content/notes/*/*.md`
-的 frontmatter 生成虚拟模块 `virtual:notes`，所以往目录里多丢一个 `.md` 就会出现，
-不需要重跑同步脚本、也没有需要提交的索引文件；笔记正文用惰性 `import.meta.glob`，
-一篇一个 chunk，180 篇也不会把正文塞进首屏。
+**清单不落盘**：`vite.config.js` 的 `content-index` 插件在构建期扫 `articles/**` 的 frontmatter
+生成虚拟模块 `virtual:content`，所以往库里的三个目录丢 `.md` 就会出现，不需要跑脚本、
+也没有要提交的索引文件；正文用惰性 `import.meta.glob`，一篇一个 chunk，几百篇也不会塞进首屏。
+**图片同理**：`materialize-assets` 插件在构建/开发前把 `articles/Projects/<册>/{img,files}`
+物化到 `public/images|files/<册>/`（已 gitignore），所以站点仓库不存图。
 
-vault 本身建议保持私有：同步只读白名单里的目录，指向未发布笔记的链接会被降级，
+### 把 articles/ 换成 submodule（内容推上去之后）
+
+```bash
+# 站点仓库里（articles/ 已提交过，切 submodule 前先删掉普通目录）
+git rm -r --cached articles && rm -rf articles
+git submodule add https://github.com/Molforte/molforte.Articles articles
+git commit -m "chore: 内容库改为 submodule"
+```
+
+CI 侧需要在 `actions/checkout` 上加 `submodules: true`（公开仓库，读不需要额外 token），
+改动内容库后要么手动重跑站点构建，要么在内容库加一个 `repository_dispatch`。
+
+vault 本身保持私有：同步只读白名单里的目录，指向未发布笔记的链接会被降级，
 `scripts/obsidian.config.mjs`（含本机路径）也在 `.gitignore` 里。
 
 ### 代码质量
