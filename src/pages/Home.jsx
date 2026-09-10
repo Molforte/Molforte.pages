@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { posts, formatDate, readingMinutes, volumes, getVolumeIntro } from '../lib/content.js'
+import { posts, formatDate, volumes, getVolumeIntro } from '../lib/content.js'
 import { SITE } from '../site.js'
 import BlendCursor from '../components/BlendCursor.jsx'
 
@@ -88,7 +88,7 @@ export default function Home() {
                       {tag}
                     </span>
                   ))}
-                  <span className="post-card__read">约 {readingMinutes(post.content)} 分钟</span>
+                  <span className="post-card__read">约 {post.minutes} 分钟</span>
                 </p>
               </Link>
             </li>

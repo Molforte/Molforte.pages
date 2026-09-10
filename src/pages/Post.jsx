@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getPostBySlug, getNeighbors, formatDate, readingMinutes } from '../lib/content.js'
+import { getPostBySlug, getNeighbors, loadArticle, formatDate } from '../lib/content.js'
 import { renderMarkdown } from '../lib/markdown.js'
 import { SITE } from '../site.js'
 import NotFound from './NotFound.jsx'
@@ -28,8 +28,21 @@ function PagerItem({ to, label, title, align }) {
 export default function Post() {
   const { slug } = useParams()
   const post = getPostBySlug(slug)
+  const [content, setContent] = useState(null) // null = 还在加载
 
-  const html = useMemo(() => (post ? renderMarkdown(post.content) : ''), [post])
+  // 正文惰性加载（清单来自构建期，正文只在进这一篇时下载）
+  useEffect(() => {
+    let alive = true
+    if (!post) return
+    loadArticle(post.slug).then((doc) => {
+      if (alive) setContent(doc ? doc.content : '')
+    })
+    return () => {
+      alive = false
+    }
+  }, [post])
+
+  const html = useMemo(() => (content ? renderMarkdown(content) : ''), [content])
 
   useEffect(() => {
     if (!post) return
@@ -45,7 +58,7 @@ export default function Post() {
   if (!post) return <NotFound />
 
   const { left, right } = getNeighbors(slug)
-  const minutes = readingMinutes(post.content)
+  const minutes = post.minutes
 
   return (
     <article className="post">
@@ -68,7 +81,11 @@ export default function Post() {
         </p>
       </header>
 
-      <MarkdownBody html={html} />
+      {content === null ? (
+        <p className="note__loading">正在取正文…</p>
+      ) : (
+        <MarkdownBody html={html} />
+      )}
 
       <nav className="post__pager" aria-label="文章上下篇">
         <PagerItem to={left ? `/post/${left.slug}` : null} label="较新的文章" title={left?.title} />

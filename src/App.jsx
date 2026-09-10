@@ -5,6 +5,7 @@ import Post from './pages/Post.jsx'
 import Archive from './pages/Archive.jsx'
 import Volume from './pages/Volume.jsx'
 import Note from './pages/Note.jsx'
+import Fragment from './pages/Fragment.jsx'
 import StaticPage from './pages/StaticPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/archive" element={<Archive />} />
               <Route path="/notes/:volume" element={<Volume />} />
               <Route path="/notes/:volume/:note" element={<Note />} />
+              <Route path="/fragment/:slug" element={<Fragment />} />
               <Route path="/friends" element={<StaticPage slug="friends" />} />
               <Route path="/about" element={<StaticPage slug="about" />} />
               <Route path="/post/:slug" element={<Post />} />

@@ -1,19 +1,24 @@
 // ============================================================
 // 内容管线
-// content/*.md 一篇一文件，文件名建议 YYYY-MM-DD-english-slug.md。
-// frontmatter 支持：title / date / project / tags / summary / slug / draft
-// 文件名里的日期与 slug 是兜底，frontmatter 优先。
+// 文章库 articles/（将来是 submodule：Molforte/molforte.Articles）：
+//   Projects/<册>/   一册一个目录（栏目）：<笔记>.md + index.md + img/
+//   Articles/<文章>.md   独立文章（按日期）
+//   Fragments/<残页>.md  残页
+// 站点自己的静态页仍在 content/pages/。
+// 清单由 vite 插件构建期生成（virtual:content），正文用惰性 glob 按需加载。
 // ============================================================
 import { parseFrontMatter } from './frontmatter.js'
 import { stripCode, countChars } from './text.js'
-import { volumeIndex } from 'virtual:notes'
+import { contentIndex } from 'virtual:content'
 
-// 一行 Vite API：把所有 content/*.md 以纯文本打包进应用。
-// 在 dev 下新增/修改文章即时生效；构建时全部随包输出。
-const modules = import.meta.glob('../../content/*.md', {
+// 文章正文：惰性加载（进单篇页面才拉那一篇）
+const articleLoaders = import.meta.glob('../../articles/Articles/*.md', {
   query: '?raw',
   import: 'default',
-  eager: true,
+})
+const fragmentLoaders = import.meta.glob('../../articles/Fragments/*.md', {
+  query: '?raw',
+  import: 'default',
 })
 
 const FILE_RE = /^(\d{4}-\d{2}-\d{2})-([\w-]+)\.md$/
@@ -51,13 +56,31 @@ function parseFile(path, raw) {
   }
 }
 
-export const posts = Object.entries(modules)
-  .map(([path, raw]) => parseFile(path, raw))
-  .filter((p) => !p.draft && p.date)
-  .sort((a, b) => (a.date === b.date ? b.slug.localeCompare(a.slug) : b.date.localeCompare(a.date)))
+/** 独立文章（articles/Articles/）：清单来自构建期，正文惰性加载 */
+const withMinutes = (a) => ({ ...a, minutes: Math.max(1, Math.round((a.chars || 0) / 420)) })
+export const posts = contentIndex.articles.map(withMinutes)
+export const fragments = contentIndex.fragments
 
 export function getPostBySlug(slug) {
   return posts.find((p) => p.slug === slug) || null
+}
+
+export function getFragment(slug) {
+  return fragments.find((f) => f.slug === slug) || null
+}
+
+/** 取单篇文章正文（动态 import，按需下载） */
+export async function loadArticle(slug) {
+  const key = Object.keys(articleLoaders).find((k) => k.split('/').pop() === `${slug}.md`)
+  if (!key) return null
+  return parseFile(key, await articleLoaders[key]())
+}
+
+/** 取单篇残页正文（同上） */
+export async function loadFragment(slug) {
+  const key = Object.keys(fragmentLoaders).find((k) => k.split('/').pop() === `${slug}.md`)
+  if (!key) return null
+  return parseFile(key, await fragmentLoaders[key]())
 }
 
 /** 静态单页：按文件名（不含 .md）取 content/pages/ 下的页面 */
@@ -114,18 +137,19 @@ export function formatDate(iso) {
 export { countChars, stripCode }
 
 /* ============================================================
-   笔记「册」：content/notes/<册>/
+   笔记「册」：articles/Projects/<册>/
      <笔记>.md    一篇一个文件，**正文惰性加载**（进页面才拉那一篇）
      index.md     册首页（vault 里 README / @ 索引页的内容）
+     img/         该册引用的图片（构建期物化到 public/images/<册>/）
    册清单不落盘：由 vite 插件在**构建期扫 frontmatter** 生成虚拟模块
-   （virtual:notes）——所以往目录里丢一个 .md 就够了，不用跑任何脚本。
+   （virtual:content）——所以往目录里丢一个 .md 就够了，不用跑任何脚本。
    ============================================================ */
-const volumePages = import.meta.glob('../../content/notes/*/index.md', {
+const volumePages = import.meta.glob('../../articles/Projects/*/index.md', {
   eager: true,
   query: '?raw',
   import: 'default',
 })
-const noteLoaders = import.meta.glob('../../content/notes/*/*.md', {
+const noteLoaders = import.meta.glob('../../articles/Projects/*/*.md', {
   query: '?raw',
   import: 'default',
 }) // 注意：非 eager
@@ -133,7 +157,7 @@ const noteLoaders = import.meta.glob('../../content/notes/*/*.md', {
 const volDir = (path) => path.split('/').slice(-2)[0]
 
 /** 栏目（= 册）列表：构建期生成，按最后更新倒序 */
-export const volumes = volumeIndex
+export const volumes = contentIndex.volumes
 
 export function getVolume(slug) {
   return volumes.find((v) => v.slug === slug) || null
@@ -144,9 +168,13 @@ export function countNoteChars() {
   return volumes.reduce((sum, v) => sum + (v.chars || 0), 0)
 }
 
-/** 全站字数（文章 + 笔记），口径统一：只算正文，围栏代码块不计 */
+/** 全站字数（文章 + 笔记 + 残页），口径统一：只算正文，围栏代码块不计 */
 export function countAllChars() {
-  return posts.reduce((sum, p) => sum + countChars(p.content), 0) + countNoteChars()
+  return (
+    posts.reduce((sum, p) => sum + (p.chars || 0), 0) +
+    fragments.reduce((sum, f) => sum + (f.chars || 0), 0) +
+    countNoteChars()
+  )
 }
 
 /** 搜索用的扁平笔记索引（构建期清单，正文不加载） */

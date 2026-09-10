@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   posts,
+  fragments,
   formatDate,
   groupByProject,
-  readingMinutes,
   countAllChars,
   volumes,
   getVolumeIntro,
@@ -59,6 +59,12 @@ export default function Archive() {
             <div className="archive-stat">
               <dt>文章</dt>
               <dd>{posts.length}</dd>
+            </div>
+          )}
+          {fragments.length > 0 && (
+            <div className="archive-stat">
+              <dt>碎片</dt>
+              <dd>{fragments.length}</dd>
             </div>
           )}
           <div className="archive-stat">
@@ -117,9 +123,7 @@ export default function Archive() {
                             {tag}
                           </span>
                         ))}
-                        <span className="archive-row__read">
-                          约 {readingMinutes(post.content)} 分钟
-                        </span>
+                        <span className="archive-row__read">约 {post.minutes} 分钟</span>
                         <time className="archive-row__date" dateTime={post.date}>
                           {formatDate(post.date)}
                         </time>
@@ -130,6 +134,24 @@ export default function Archive() {
               </ol>
             </Reveal>
           ))}
+        </section>
+      )}
+
+      {fragments.length > 0 && (
+        <section className="archive-posts">
+          <h2 className="archive-section-title">碎片</h2>
+          <ol className="note-list">
+            {fragments.map((f, index) => (
+              <Reveal as="li" className="note-row" key={f.slug} i={Math.min(index, 8)}>
+                <Link className="note-row__link" to={`/fragment/${f.slug}`}>
+                  <span className="note-row__title">{f.title}</span>
+                  <span className="note-row__date">
+                    <time dateTime={f.date}>{formatDate(f.date)}</time>
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </ol>
         </section>
       )}
     </div>

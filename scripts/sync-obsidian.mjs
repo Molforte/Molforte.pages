@@ -1,6 +1,6 @@
 // Obsidian → 站点 同步器
-//   默认 **dry-run**：只读 vault、只打印报告、只在 .qa/ 里放转换预览，不碰 content/ 与 public/。
-//   加 --write 才真正写入：content/notes/<slug>/、public/images/<slug>/、public/files/<slug>/
+//   默认 **dry-run**：只读 vault、只打印报告、只在 .qa/ 里放转换预览，不写任何内容文件。
+//   加 --write 才真正写入文章库：articles/Projects/<册>/（笔记 md + index.md + img/ + files/）
 //   --volume=<slug> 只跑某一册；--preview=<文件名> 指定要导出的预览笔记
 //
 // 站内占位符（渲染时由站点替换，避免把部署 base 写死进内容）：
@@ -330,8 +330,8 @@ for (const v of volList) {
     const date = item.created || isoDate(item.mtime)
     const isIndex = item.isIndex
     const outPath = isIndex
-      ? `content/notes/${v.slug}/index.md`
-      : `content/notes/${v.slug}/${item.slug}.md`
+      ? `articles/Projects/${v.slug}/index.md`
+      : `articles/Projects/${v.slug}/${item.slug}.md`
     const title = isIndex ? v.title || basename(v.vaultPath) : item.title
     const fm = [
       '---',
@@ -383,13 +383,15 @@ for (const v of volList) {
       writeFileSync(abs, full, 'utf8')
     }
     if (WRITE) {
+      // 图片/附件跟着册走：articles/Projects/<册>/img|files/
+      // （构建期由 vite 的 materialize-images 插件物化到 public/images|files/）
       for (const p of conv.imgJobs) {
-        const dst = join(process.cwd(), 'public/images', v.slug, webName(basename(p)))
+        const dst = join(process.cwd(), 'articles/Projects', v.slug, 'img', webName(basename(p)))
         mkdirSync(join(dst, '..'), { recursive: true })
         copyFileSync(p, dst)
       }
       for (const p of conv.fileJobs) {
-        const dst = join(process.cwd(), 'public/files', v.slug, webName(basename(p)))
+        const dst = join(process.cwd(), 'articles/Projects', v.slug, 'files', webName(basename(p)))
         mkdirSync(join(dst, '..'), { recursive: true })
         copyFileSync(p, dst)
       }
@@ -415,7 +417,7 @@ for (const v of volList) {
   // 说明：册清单（标题/顺序/日期/摘要）不落盘，改由 vite 插件在构建期扫 frontmatter 生成，
   // 所以内容目录里只要多一个 .md 就会出现，不需要重跑同步脚本。
   if (WRITE) {
-    const dir = join(process.cwd(), 'content/notes', v.slug)
+    const dir = join(process.cwd(), 'articles/Projects', v.slug)
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, 'index.md'), indexFull, 'utf8')
   }

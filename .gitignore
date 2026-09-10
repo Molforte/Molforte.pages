@@ -11,3 +11,6 @@ npm-debug.log*
 .fontsrc/
 # 本机 vault 路径与「册」白名单：属于私有信息，不进公开库（模板见 obsidian.config.example.mjs）
 scripts/obsidian.config.mjs
+# 图片/附件是构建期从 articles/Projects/<册>/{img,files} 物化过来的，站点库不存图
+public/images/
+public/files/
