@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { posts, formatDate } from '../lib/content.js'
+import { attachLiquidGlass } from '../lib/liquidGlass.js'
 
 const ICON = {
   home: (
@@ -61,6 +62,17 @@ export default function BottomDock() {
   const inputRef = useRef(null)
   const panelRef = useRef(null)
   const triggerRef = useRef(null)
+  const islandRef = useRef(null)
+
+  // 液态玻璃折射：shuding/liquid-glass 的 SVG 滤镜位移方案
+  useEffect(() => {
+    const detachIsland = attachLiquidGlass(islandRef.current)
+    const detachSearch = attachLiquidGlass(triggerRef.current)
+    return () => {
+      detachIsland()
+      detachSearch()
+    }
+  }, [])
 
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
@@ -131,7 +143,7 @@ export default function BottomDock() {
     <>
       <div className="dock">
         {/* 主岛：仅图标；文字在悬浮/聚焦时浮现 */}
-        <nav className="apptabbar" aria-label="主导航">
+        <nav className="apptabbar" aria-label="主导航" ref={islandRef}>
           <div className="apptabbar__tabs">
             {TABS.map((tab) => (
               <NavLink

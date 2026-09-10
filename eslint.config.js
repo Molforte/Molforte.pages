@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import prettier from 'eslint-config-prettier'
 
 export default [
-  { ignores: ['dist', 'node_modules', '.qa'] },
+  { ignores: ['dist', 'node_modules', '.qa', 'third_party'] },
 
   // 通用推荐规则（所有 JS/JSX）
   js.configs.recommended,

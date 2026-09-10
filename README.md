@@ -21,17 +21,21 @@
 ```text
 content/                # 所有文章，一篇一个 .md
 content/pages/          # 静态单页：about.md（关于）、friends.md（友链）…
+third_party/
+  liquid-glass/         # 第三方液态玻璃原件（MIT，© Shu Ding）+ LICENSE + 说明
 .github/workflows/      # GitHub Actions：push 到 main 自动构建并部署 Pages
 public/favicon.svg
 scripts/
   serve-dist.mjs        # 本地模拟 GitHub Pages 的静态服务器
-  qa-shots.mjs / qa-audit.mjs   # 可选：无头 Edge 渲染审计
+  qa-*.mjs              # 可选：无头 Edge 渲染 / 审计脚本
 src/
   site.js               # 站点设置（标题、署名、导语……）
+  theme.js              # 深浅色切换（跟随系统 + 手动记忆）
   lib/content.js        # 读 content/、解析 frontmatter、排序、按项目分组
+  lib/liquidGlass.js    # 底栏液态玻璃（适配自 shuding/liquid-glass）
   lib/markdown.js       # Markdown -> HTML（站外链接新开页）
   lib/highlight.js      # 按需注册的语言
-  components/           # Sidebar（侧栏导航）/ Footer
+  components/           # BottomDock（悬浮岛 + 搜索）/ Footer
   pages/                # Home / Archive / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
