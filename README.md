@@ -120,28 +120,58 @@ frontmatter 字段说明（约定单行书写）：
 视觉 token（底色、文字、分隔线、链接蓝）集中在 `src/styles/global.css` 顶部
 `:root`，改配色只动那一处。
 
-## 部署到 GitHub Pages
+## 部署到 GitHub Pages（首次）
 
-1. 仓库需是 GitHub 上的项目仓库（本仓库对应 `github.com/Molforte/Molforte.pages`）；
-2. 代码推送到 `main` 分支；
-3. 在仓库 **Settings → Pages → Source** 选 **GitHub Actions**；
-4. 工作流 `npm ci && npm run build` 后发布 `dist/`，站点地址为
-   `https://molforte.github.io/Molforte.pages/`。
+仓库地址：`github.com/Molforte/Molforte.pages` → 站点地址 `https://molforte.github.io/Molforte.pages/`
 
-每次发布都发生在 CI，不需要本地构建产物入库。
+### 三步
 
-### 换仓库名？
+1. **推送代码**（本地已 init 并提交好，只差 push）：
 
-改两处，其余自动：
+   ```powershell
+   pwsh -File scripts/push-to-github.ps1     # 带连通性检查与提示
+   # 或者手动：
+   git remote add origin https://github.com/Molforte/Molforte.pages.git
+   git push -u origin main
+   ```
 
-- `vite.config.js` 顶部的 `REPO_BASE`（构建资源 base 与路由 basename 都会随之生效）；
-- `src/components/Footer.jsx` 里的仓库外链。
+   > 本机 hosts 把 `github.com` 指向了 `127.0.0.1`（Steam++/Watt Toolkit 写的）。
+   > push 前请先关掉它的加速开关，否则会 `Connection was reset`。
 
-### 直接刷新文章地址不会 404？
+2. **开启 Pages**：仓库 **Settings → Pages → Source** 选 **GitHub Actions**（不是 “Deploy from a branch”）。
 
-会走 GitHub Pages 的 `404.html` 回退：构建时 `index.html` 被复制为
-`404.html`，刷新 `/post/xxx` 时 GitHub 返回 `404.html`，应用启动后由
-React Router 根据真实 URL 渲染对应文章。这是 GitHub Pages 上 SPA 的标准做法。
+3. **等 CI**：Actions 里 `Deploy to GitHub Pages` 跑完（`npm ci` → `npm run build` → 发布 `dist/`），
+   然后访问 `https://molforte.github.io/Molforte.pages/`。之后每次 push 到 `main` 都会自动重新部署。
+
+### base 路径是自动的
+
+`vite.config.js` 在 Actions 里会用 `GITHUB_REPOSITORY` 自动推断：
+
+| 仓库 | base |
+| --- | --- |
+| `Molforte/Molforte.pages`（项目站点） | `/Molforte.pages/` |
+| `Molforte/Molforte.github.io`（用户站点） | `/` |
+| 本地构建（无环境变量） | 兜底 `/Molforte.pages/` |
+
+要手动指定（例如换了仓库名、或自定义域名部署在根路径）：
+`VITE_BASE=/新路径/ npm run build`。改过仓库地址的话，顺手把
+`src/components/Footer.jsx` 里的仓库外链也改一下。
+
+### 刷新文章地址不会 404？
+
+走 `404.html` 回退：构建时 `index.html` 被复制为 `404.html`，刷新 `/post/xxx` 时
+GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyll` 也在，
+万一你改成 “Deploy from a branch” 也不会被 Jekyll 处理。
+
+### 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| push 报 `Connection was reset` | 本机 hosts/Steam++ 拦截了 github，先关掉加速 |
+| 页面能开但样式/JS 404 | base 不符：确认仓库名，或用 `VITE_BASE` 指定 |
+| Actions 找不到 Pages | Settings → Pages → Source 要选 **GitHub Actions** |
+| 刚部署完访问 404 | 首次部署要等 1–2 分钟，或强刷（CDN 缓存） |
+| 深链刷新 404（状态码） | 正常：`404.html` 内容就是应用，页面仍会正常渲染 |
 
 ## 布局与定制
 
