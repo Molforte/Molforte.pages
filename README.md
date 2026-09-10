@@ -29,6 +29,7 @@ scripts/
   qa-*.mjs              # 可选：无头 Edge 渲染 / 审计 / 线上验收脚本
   qa-code.mjs           # 代码块验收：高亮生效、纯文本块不着色、无未知语言告警
   qa-font.mjs           # 字体验收：Sarasa 子集已加载且真等宽（QA_WAIT=load 可放宽等待）
+  qa-align.mjs          # 对齐验收：卡片内「墨迹」到圆角的距离 = 圆角半径（QA_W=390 可测窄屏）
 src/
   site.js               # 站点设置（标题、署名、导语……）
   theme.js              # 深浅色切换（跟随系统 + 手动记忆）
@@ -73,7 +74,7 @@ node scripts/serve-dist.mjs     # http://127.0.0.1:4173/Molforte.pages/
 
 在 `content/` 新建一个文件，命名 `YYYY-MM-DD-english-slug.md`：
 
-````markdown
+```markdown
 ---
 title: 一篇新文章
 date: 2026-09-09
@@ -87,7 +88,7 @@ draft: false # true = 暂不发布
 - 表格、任务列表（gfm）
 - 代码块自动高亮：`js / `bash / `yaml / `html …
 - 链接、引用、图片……
-````
+```
 
 frontmatter 字段说明（约定单行书写）：
 
@@ -208,6 +209,31 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 
 现有对应：卡片 20/20、归档 hero 20/20、归档分组卡与行左右 20、
 搜索浮层与结果行左右 28、代码块 16/16、芯片/气泡/行内代码左右 8、主题按钮 12/12。
+
+#### 2.1）量的是「墨迹」，不是行盒
+
+上面的 20 指的是**字形墨迹**到边的距离。行盒顶部还含半行距与字体内部空隙，
+字号越大越明显（归档页 44px 的「归档」原本离上边 31.6px、离左边 23px，看起来就是没对齐）。
+所以卡片内**第一行字**要补一次墨迹补偿：
+
+```css
+.archive-hero__title {
+  --lh: 1.3;
+  /* 半行距 + 字体内部空隙（--ink-gap 见 :root，换字体栈需重新标定）反向抵消 */
+  margin: calc((1 - var(--lh)) / 2 * 1em - var(--ink-gap)) 0 0;
+  line-height: var(--lh);
+}
+```
+
+两个坑：
+
+- 与别的元素**基线对齐**（`align-items: baseline`）的 flex 子项，负 `margin-top` 会被
+  基线对齐算法抵消，必须改从父容器内边距里扣（见 `.archive-group-card__head`）；
+- 补偿只加在**卡片内第一行字**上（归档 hero 标题、分组卡标题、首页卡片标题）。
+  正文页标题不在卡片里，页面留白不是圆角，不套这条。
+
+归档分组卡的行距同样是 20 的网格：卡头下内边距 10 + 行内边距 10 = 20；
+末行文字到卡片下边 ≈ 21（`.archive-rows` 的 `padding-bottom: 7px` 是为此标定的）。
 
 唯一例外是**胶囊**（底栏标签与选中胶囊）：两端本来就是完整圆弧，
 内容由「胶囊格」居中承载，不套用这条规则。

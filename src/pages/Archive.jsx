@@ -55,9 +55,7 @@ export default function Archive() {
             {group.items.map((post) => (
               <li className="archive-row" key={post.slug}>
                 <Link className="archive-row__link" to={`/post/${post.slug}`}>
-                  <time className="archive-row__date" dateTime={post.date}>
-                    {formatDate(post.date)}
-                  </time>
+                  {/* 标题在最左，与组标题「未分类」同一条竖线 */}
                   <span className="archive-row__title">{post.title}</span>
                   <span className="archive-row__meta">
                     {post.tags.slice(0, 2).map((tag) => (
@@ -68,6 +66,10 @@ export default function Archive() {
                     <span className="archive-row__read">
                       约 {readingMinutes(post.content)} 分钟
                     </span>
+                    {/* 日期殿后、右对齐，各行的日期自然成一列 */}
+                    <time className="archive-row__date" dateTime={post.date}>
+                      {formatDate(post.date)}
+                    </time>
                   </span>
                 </Link>
               </li>

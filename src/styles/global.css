@@ -84,6 +84,11 @@
   --r-xl: 28px; /* 大浮层 */
   --r-pill: 999px; /* 胶囊、圆形 */
 
+  /* 墨迹补偿：文字行盒顶部到「字形墨迹」的间隙 ≈ 半行距 + 字体内部空隙。
+     卡片内第一行字要贴齐圆角内边距时，用 margin 抵消这部分（见 .ink-align 用法）。
+     0.1em 是在本机中日韩字体上实测的字体内部空隙，换字体栈时需要重新标定。 */
+  --ink-gap: 0.1em;
+
   /* 布局：全站统一内容宽度（比之前更宽、不追 60%） */
   --measure: min(76vw, 60rem); /* 所有页面共用；超宽屏封顶 60rem */
   --measure-phone: 46rem; /* 小屏回退宽度 */
@@ -677,10 +682,12 @@ a {
 }
 
 .post-card__title {
-  margin: 0;
+  /* 墨迹贴齐卡片圆角（同归档：抵消半行距 + 字体内部空隙） */
+  --lh: 1.42;
+  margin: calc((1 - var(--lh)) / 2 * 1em - var(--ink-gap)) 0 0;
   font-size: 1.06rem;
   font-weight: 600;
-  line-height: 1.42;
+  line-height: var(--lh);
   letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1104,10 +1111,12 @@ a {
 }
 
 .archive-hero__title {
-  margin: 0;
+  /* 墨迹贴齐圆角：抵消半行距 + 字体内部空隙，让「归档」到上边的距离 = 到左边的距离 = --r-lg */
+  --lh: 1.3;
+  margin: calc((1 - var(--lh)) / 2 * 1em - var(--ink-gap)) 0 0;
   font-size: clamp(1.9rem, 5vw, 2.6rem);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: var(--lh);
   letter-spacing: -0.01em;
 }
 
@@ -1161,13 +1170,18 @@ a {
   display: flex;
   align-items: baseline;
   gap: 0.6rem;
-  padding: var(--r-lg) var(--r-lg) calc(var(--r-lg) * 0.6); /* 左右 = 圆角半径 */
+  /* 「未分类」与「N 篇」基线对齐，所以不能用负边距把墨迹提上去（会被基线对齐算法抵消）。
+     改为直接从上内边距里扣掉它的「半行距 + 字体内部空隙 1px」，墨迹即贴齐 --r-lg；
+     下内边距留半个半径，配合每行自身的半个半径，行距恒为 --r-lg。
+     注意：这里的 1.12rem / 1.4 必须与 .archive-group-card__name 保持一致。 */
+  padding: calc(var(--r-lg) - (1.4 - 1) / 2 * 1.12rem - 1px) var(--r-lg) calc(var(--r-lg) * 0.5);
 }
 
 .archive-group-card__name {
   margin: 0;
   font-size: 1.12rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .archive-group-card__count {
@@ -1179,30 +1193,25 @@ a {
 /* —— 卡内条目行（无分隔线，靠行距与悬停区分） —— */
 .archive-rows {
   margin: 0;
-  padding: 0;
+  /* 末行文字墨迹比行盒底低约 3.5px（半行距 + 下降部），再抵掉卡片 1px 边框：
+     顶部墨迹到上边是 --r-lg（21px），这里取 7px 与 10px 行内边距相加，让底部留白一致。 */
+  padding: 0 0 7px;
   list-style: none;
 }
 
 .archive-row__link {
   display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding: calc(var(--r-lg) * 0.55) var(--r-lg); /* 左右 = 圆角半径 */
+  align-items: baseline;
+  gap: 1.2rem;
+  padding: calc(var(--r-lg) * 0.5) var(--r-lg); /* 上下半个半径、左右 = 圆角半径 */
   color: var(--text);
   text-decoration: none;
-  border-radius: var(--r-md);
+  border-radius: var(--r-md); /* 列表行档位 */
   transition: background 0.15s ease;
 }
 
 .archive-row__link:hover {
   background: var(--row-hover-bg);
-}
-
-.archive-row__date {
-  flex: none;
-  color: var(--text-3);
-  font-size: 0.84rem;
-  font-variant-numeric: tabular-nums;
 }
 
 .archive-row__title {
@@ -1221,10 +1230,18 @@ a {
 .archive-row__meta {
   flex: none;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
   color: var(--text-3);
   font-size: 0.78rem;
+}
+
+.archive-row__date {
+  order: 2; /* 日期殿后：各行日期等宽、右对齐，自然成一列 */
+  flex: none;
+  color: var(--text-3);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .archive-row__tag {
@@ -1380,19 +1397,21 @@ a {
 
   .archive-row__link {
     flex-wrap: wrap;
-    gap: 0.5rem 0.9rem;
-  }
-
-  .archive-row__date {
-    width: auto;
+    gap: 0.35rem 0.9rem;
   }
 
   .archive-row__title {
-    flex: 1 1 70%;
+    flex: 1 1 100%;
   }
 
+  /* 窄屏：标题独占一行；日期回到元信息最前，与首页卡片的元信息顺序一致 */
   .archive-row__meta {
     flex-basis: 100%;
+    flex-wrap: wrap;
+  }
+
+  .archive-row__date {
+    order: -1;
   }
 
   .post__pager {
