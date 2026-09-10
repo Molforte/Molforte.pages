@@ -56,6 +56,37 @@ function key(name) {
     .trim()
 }
 const webName = (name) => name.replace(/\s+/g, '-')
+
+/**
+ * 从文件名里拆出「顺序」与「标题」，两种编号都认：
+ *   01-LED指示灯的基本操作 / 0a-准备 / 16-DS18B20…     → order=01|0a|16
+ *   第一章-前备知识汇总 / 第9章-点亮一个LED / 第十二章-…  → order=1|9|12
+ * 角标统一显示成可排序的短编号，标题不带前缀。
+ */
+const CN_DIGIT = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 }
+function cnNumber(s) {
+  if (/^\d+$/.test(s)) return Number(s)
+  if (!/^[一二三四五六七八九十]+$/.test(s)) return null
+  if (s === '十') return 10
+  if (s.includes('十')) {
+    const [a, b] = s.split('十')
+    return (a ? CN_DIGIT[a] : 1) * 10 + (b ? CN_DIGIT[b] : 0)
+  }
+  return CN_DIGIT[s] ?? null
+}
+function parseOrderTitle(name) {
+  // 第X章 / 第X节 / 第X讲（X 是阿拉伯或中文数字）
+  const cn = /^第\s*([0-9]+|[一二三四五六七八九十]+)\s*([章节讲课篇])\s*[-_—·.、:：]?\s*(.*)$/.exec(
+    name,
+  )
+  if (cn) {
+    const n = cnNumber(cn[1])
+    if (n) return { order: String(n), title: (cn[3] || `第${n}${cn[2]}`).trim() }
+  }
+  const ascii = /^(\d+[a-z]?)\s*[-_—·.、]\s*(.+)$/i.exec(name)
+  if (ascii) return { order: ascii[1].toLowerCase(), title: ascii[2].trim() }
+  return { order: '', title: name }
+}
 const yaml = (v) => {
   const s = String(v)
   return /^[[\]{}:#&*!|>'"%@`]|:\s|\s$/.test(s) ? `"${s.replace(/"/g, "'")}"` : s
@@ -107,9 +138,7 @@ function loadVolume(v) {
   const items = notes.map((p) => {
     const raw = readFileSync(p, 'utf8')
     const name = basename(p, '.md')
-    const om = /^(\d+[a-z]?)\s*[-_—·.、]\s*(.+)$/i.exec(name)
-    const order = om ? om[1].toLowerCase() : ''
-    const title = (om ? om[2] : name).trim()
+    const { order, title } = parseOrderTitle(name)
     const fm = RE_FM.exec(raw)
     const fields = {}
     if (fm) {

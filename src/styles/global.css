@@ -1497,6 +1497,26 @@ a {
   font-size: 0.9rem;
 }
 
+/* 数学：块级公式独立成行、超宽可横滚；KaTeX 样式在真有公式时才动态加载 */
+.post-body .math-tex[data-display='1'] {
+  display: block;
+  margin: 1.2rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.post-body .katex {
+  font-size: 1.04em;
+}
+
+.post-body .katex-display {
+  margin: 0;
+}
+
+.post-body .katex-display > .katex {
+  white-space: normal;
+}
+
 /* Obsidian 的 ==高亮== */
 .post-body mark {
   background: color-mix(in srgb, var(--link) 18%, transparent);
