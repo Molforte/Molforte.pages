@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # 内容在 Molforte/molforte.Articles（公开库，读不需要额外 token）
+          submodules: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22
