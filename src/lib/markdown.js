@@ -26,7 +26,22 @@ marked.use({
   },
 })
 
-/** Markdown -> HTML 字符串 */
-export function renderMarkdown(md) {
-  return marked.parse(md)
+/** Markdown -> HTML 字符串
+ *  options.volume：该文所在「册」的 slug，用于解析同步器写的占位符：
+ *    {{IMG:文件}}          → <base>images/<册>/<文件>
+ *    {{FILE:文件}}         → <base>files/<册>/<文件>
+ *    {{NOTE:册/笔记}}      → <base>notes/<册>/<笔记>
+ *  这样内容里不写死部署 base（开发是 /，Pages 是 /Molforte.pages/）。
+ */
+export function renderMarkdown(md, options = {}) {
+  const base = import.meta.env.BASE_URL
+  const vol = options.volume || ''
+  const resolved = md
+    .replace(/\{\{IMG:([^}]+)\}\}/g, (m, f) => `${base}images/${vol}/${encodeURIComponent(f)}`)
+    .replace(/\{\{FILE:([^}]+)\}\}/g, (m, f) => `${base}files/${vol}/${encodeURIComponent(f)}`)
+    .replace(/\{\{NOTE:([^/}]+)\/([^}]*)\}\}/g, (m, v, s) => {
+      const tail = s ? `/${encodeURIComponent(s)}` : '/'
+      return `${base}notes/${v}${tail}`
+    })
+  return marked.parse(resolved)
 }

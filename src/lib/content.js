@@ -4,6 +4,8 @@
 // frontmatter 支持：title / date / project / tags / summary / slug / draft
 // 文件名里的日期与 slug 是兜底，frontmatter 优先。
 // ============================================================
+import { parseFrontMatter } from './frontmatter.js'
+import { volumeIndex } from 'virtual:notes'
 
 // 一行 Vite API：把所有 content/*.md 以纯文本打包进应用。
 // 在 dev 下新增/修改文章即时生效；构建时全部随包输出。
@@ -21,43 +23,6 @@ const pageModules = import.meta.glob('../../content/pages/*.md', {
   import: 'default',
   eager: true,
 })
-
-/**
- * 极简 frontmatter 解析（够用就好，不引依赖）。
- * 约定：frontmatter 在文件头部 --- 之间，字段单行书写：
- *   title: 标题
- *   date: 2026-09-08
- *   project: 某项目    （用于归档页按项目分组）
- *   tags: [随笔, 界面]
- *   draft: false
- * 字符串值两端的引号会被剥掉；[a, b] 会被拆成数组。
- */
-function parseFrontMatter(raw) {
-  const body = raw.replace(/^\uFEFF/, '')
-  const data = {}
-  const m = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?/.exec(body)
-  if (!m) return { data, content: body }
-  for (const line of m[1].split(/\r?\n/)) {
-    const idx = line.indexOf(':')
-    if (idx <= 0) continue
-    const key = line.slice(0, idx).trim()
-    if (!key) continue
-    let val = line.slice(idx + 1).trim()
-    if (val.startsWith('[') && val.endsWith(']')) {
-      data[key] = val
-        .slice(1, -1)
-        .split(',')
-        .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
-        .filter(Boolean)
-    } else {
-      val = val.replace(/^['"]|['"]$/g, '')
-      if (val === 'true') data[key] = true
-      else if (val === 'false') data[key] = false
-      else if (val !== '') data[key] = val
-    }
-  }
-  return { data, content: body.slice(m[0].length) }
-}
 
 function firstParagraph(md) {
   const line = md
@@ -143,4 +108,57 @@ export function readingMinutes(md) {
 /** 简洁日期：2026-09-08（等宽数字、更克制） */
 export function formatDate(iso) {
   return iso || ''
+}
+
+/* ============================================================
+   笔记「册」：content/notes/<册>/
+     <笔记>.md    一篇一个文件，**正文惰性加载**（进页面才拉那一篇）
+     index.md     册首页（vault 里 README / @ 索引页的内容）
+   册清单不落盘：由 vite 插件在**构建期扫 frontmatter** 生成虚拟模块
+   （virtual:notes）——所以往目录里丢一个 .md 就够了，不用跑任何脚本。
+   ============================================================ */
+const volumePages = import.meta.glob('../../content/notes/*/index.md', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+})
+const noteLoaders = import.meta.glob('../../content/notes/*/*.md', {
+  query: '?raw',
+  import: 'default',
+}) // 注意：非 eager
+
+const volDir = (path) => path.split('/').slice(-2)[0]
+
+/** 栏目（= 册）列表：构建期生成，按最后更新倒序 */
+export const volumes = volumeIndex
+
+export function getVolume(slug) {
+  return volumes.find((v) => v.slug === slug) || null
+}
+
+/** 册首页正文（README/@ 索引页转换而来） */
+export function getVolumeIntro(slug) {
+  for (const [path, raw] of Object.entries(volumePages)) {
+    if (volDir(path) === slug) return parseFile(path, raw).content
+  }
+  return ''
+}
+
+/** 册内相邻笔记：prev = 上一篇（更靠前），next = 下一篇 */
+export function getNoteNeighbors(volumeSlug, noteSlug) {
+  const vol = getVolume(volumeSlug)
+  if (!vol) return { prev: null, next: null }
+  const i = vol.notes.findIndex((n) => n.slug === noteSlug)
+  if (i === -1) return { prev: null, next: null }
+  return { prev: vol.notes[i - 1] || null, next: vol.notes[i + 1] || null }
+}
+
+/** 取单篇笔记正文（动态 import，按需下载） */
+export async function loadNote(volumeSlug, noteSlug) {
+  const key = Object.keys(noteLoaders).find(
+    (k) => volDir(k) === volumeSlug && k.split('/').pop() === `${noteSlug}.md`,
+  )
+  if (!key) return null
+  const raw = await noteLoaders[key]()
+  return parseFile(key, raw)
 }

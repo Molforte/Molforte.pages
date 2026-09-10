@@ -21,6 +21,9 @@
 ```text
 content/                # 所有文章，一篇一个 .md
 content/pages/          # 静态单页：about.md（关于）、friends.md（友链）…
+content/notes/<册>/     # 笔记「册」：<笔记>.md + index.md（册首页），一册 = 归档里的一个栏目
+content/notes/<册>/index.md   # 册首页（Obsidian 的 README/@ 索引页转换而来）
+public/images/<册>/     # 该册引用的图片（只搬用到的）
 .github/workflows/      # GitHub Actions：push 到 main 自动构建并部署 Pages
 public/favicon.svg
 scripts/
@@ -30,17 +33,21 @@ scripts/
   qa-code.mjs           # 代码块验收：高亮生效、纯文本块不着色、无未知语言告警
   qa-font.mjs           # 字体验收：Sarasa 子集已加载且真等宽（QA_WAIT=load 可放宽等待）
   qa-align.mjs          # 对齐验收：卡片内「墨迹」到圆角的距离 = 圆角半径（QA_W=390 可测窄屏）
+  scan-vault.mjs        # Obsidian 全库盘点（只读）：链接/嵌入/公式/图片用量与领域分档
+  sync-obsidian.mjs     # Obsidian → 站点转换：默认 dry-run，--write 才落盘
+  obsidian.config.example.mjs   # 同步白名单模板（真正的 obsidian.config.mjs 已 gitignore）
 src/
   site.js               # 站点设置（标题、署名、导语……）
   theme.js              # 深浅色切换（跟随系统 + 手动记忆）
+  lib/frontmatter.js    # 极简 frontmatter 解析（运行时与构建期共用）
   lib/content.js        # 读 content/、解析 frontmatter、排序、按项目分组
-  lib/markdown.js       # Markdown -> HTML（站外链接新开页）
+  lib/markdown.js       # Markdown -> HTML（站外链接新开页 + {{IMG}}/{{FILE}}/{{NOTE}} 占位符）
   lib/highlight.js      # 按需注册的语言
-  components/           # BottomDock（GlassSurface 玻璃岛 + 搜索）/ BlendCursor / Footer
-  pages/                # Home / Archive / Post / StaticPage / NotFound
+  components/           # BottomDock（GlassSurface 玻璃岛 + 搜索）/ MarkdownBody / BlendCursor / Footer
+  pages/                # Home / Archive（栏目制）/ Volume / Note / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
-vite.config.js          # base 路径（Actions 里自动推断）与 404.html 回退插件
+vite.config.js          # base 路径（Actions 里自动推断）、404.html 回退、virtual:notes 册清单插件
 ```
 
 ## 本地开发
@@ -52,6 +59,42 @@ npm run build      # 产物在 dist/
 ```
 
 开发模式下新增 / 修改文章即时生效（`import.meta.glob` 会监听 `content/`）。
+
+## 笔记（Obsidian → 归档里的「栏目」）
+
+一「册」= vault 里一个叶子目录（含 `README.md` / `01-` 编号笔记 / `img/` 的那种），
+在站点上就是**归档页的一个栏目**：`/archive` 列出所有栏目 → `/notes/<册>` 是它的首页
+（渲染该册 README/目录 + 按编号排的笔记列表）→ `/notes/<册>/<笔记>` 是单篇。
+
+命名与显示规则：
+
+| vault 里                            | 站点上                                                                      |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `01-LED指示灯的基本操作.md`         | 标题 `LED指示灯的基本操作` + 顺序角标 `01`（编号只用于排序）                |
+| `0a-准备.md` / `16-DS18B20….md`     | `0a` 排在 `01` 前，`16` 排在 `06` 后（数字+字母自然序）                     |
+| `README.md` / `@xxx.md`             | 该册的首页（栏目落地页）                                                    |
+| `img/x.png`（被 `![[x.png]]` 引用） | 复制到 `public/images/<册>/x.png`，正文里用 `{{IMG:x.png}}`                 |
+| `[[另一篇]]`                        | 站内链接 `{{NOTE:<册>/<笔记>}}`；指向未发布笔记的降级成纯文本（不泄露标题） |
+| `created:` 或文件时间               | 显示成「最后更新」                                                          |
+
+**加一册**（同步白名单即发布闸门，没列进去的册根本不会被读）：
+
+```bash
+cp scripts/obsidian.config.example.mjs scripts/obsidian.config.mjs   # 首次；该文件已 gitignore
+# 编辑 volumes：vaultPath / slug / title / series / project
+node scripts/scan-vault.mjs "D:\path\to\vault"     # 可选：先盘点（链接/公式/图片用量）
+node scripts/sync-obsidian.mjs                     # dry-run：只出报告与 .qa/ 预览，不写文件
+node scripts/sync-obsidian.mjs --write             # 真正写入 content/notes/ 与 public/images/
+npm run build && node scripts/serve-dist.mjs       # 本地看效果
+```
+
+**册清单不落盘**：`vite.config.js` 里的 `notes-index` 插件在构建期扫 `content/notes/*/*.md`
+的 frontmatter 生成虚拟模块 `virtual:notes`，所以往目录里多丢一个 `.md` 就会出现，
+不需要重跑同步脚本、也没有需要提交的索引文件；笔记正文用惰性 `import.meta.glob`，
+一篇一个 chunk，180 篇也不会把正文塞进首屏。
+
+vault 本身建议保持私有：同步只读白名单里的目录，指向未发布笔记的链接会被降级，
+`scripts/obsidian.config.mjs`（含本机路径）也在 `.gitignore` 里。
 
 ### 代码质量
 

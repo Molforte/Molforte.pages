@@ -193,7 +193,14 @@ export default function BottomDock() {
                   to={tab.to}
                   end={tab.end}
                   aria-label={tab.label}
-                  className={({ isActive }) => `apptabbar__tab${isActive ? ' is-active' : ''}`}
+                  className={({ isActive }) =>
+                    // 笔记的册页/笔记页都属于「归档」这一栏
+                    `apptabbar__tab${
+                      isActive || (tab.to === '/archive' && pathname.startsWith('/notes/'))
+                        ? ' is-active'
+                        : ''
+                    }`
+                  }
                 >
                   <span className="apptabbar__icon-wrap">
                     <svg className="apptabbar__icon" {...ICON_PROPS}>

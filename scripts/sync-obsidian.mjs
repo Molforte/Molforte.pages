@@ -58,20 +58,25 @@ const yaml = (v) => {
   const s = String(v)
   return /^[[\]{}:#&*!|>'"%@`]|:\s|\s$/.test(s) ? `"${s.replace(/"/g, "'")}"` : s
 }
-/** 摘要：取第一行正文，去掉链接语法与裸 URL，压成单行 */
+/** 摘要：取第一行「像人话」的正文，去掉链接语法/裸 URL/代码行，压成单行 */
 const firstParagraph = (md) => {
   for (const raw of md.split(/\r?\n/)) {
     let line = raw.trim()
     if (!line) continue
-    if (/^[|>#`]|^[-*+]\s|\d+\.\s/.test(line)) continue // 标题/引用/列表/代码行跳过
+    if (/^[|>#`]|^[-*+]\s|\d+\.\s/.test(line)) continue // 标题/引用/列表/代码行
     line = line
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
       .replace(/https?:\/\/\S+/g, '')
+      .replace(/\\([#*_`[\]])/g, '$1') // 还原被转义的行首标签
       .replace(/[*_~`]/g, '')
       .replace(/\s+/g, ' ')
+      .replace(/^#+\s*/, '')
       .trim()
-    if (line.length < 8) continue
+    const cjk = (line.match(/[\u4e00-\u9fff]/g) || []).length
+    // 寄存器定义/代码/纯标签行：CJK 太少又带代码符号 → 跳过
+    if (cjk < 6 && /[{};=()<>]|\bvoid\b|\bunsigned\b|\bsfr\b|\bdefine\b/i.test(line)) continue
+    if (cjk < 4) continue
     return line.length > 140 ? `${line.slice(0, 137)}…` : line
   }
   return ''
@@ -189,13 +194,13 @@ function convert(item, vol, others) {
     const ext = extname(target).toLowerCase()
     if (asset && IMG_EXT.has(ext)) {
       imgJobs.push(asset)
-      return `![${rest.join('|') || basename(target, ext)}]({{IMG:${webName(basename(asset))}})`
+      return `![${rest.join('|') || basename(target, ext)}]({{IMG:${webName(basename(asset))}}})`
     }
     if (asset && !IMG_EXT.has(ext)) {
       fileJobs.push(asset)
       const inlined = TEXT_EXT.has(ext)
       if (inlined) warn.push(`代码附件 ${basename(asset)} 需要人工决定：内联成代码块还是下载链接`)
-      return `[${basename(asset)}]({{FILE:${webName(basename(asset))}})`
+      return `[${basename(asset)}]({{FILE:${webName(basename(asset))}}})`
     }
     const hit = resolveNote(target)
     if (hit) {
@@ -281,26 +286,32 @@ for (const v of volList) {
   }
 
   const rows = []
+  const noteMeta = []
   const allImages = new Set()
   const allFiles = new Set()
   let previewText = ''
+  let indexFull = '' // 册首页（README / @ 索引页）
   for (const item of loaded.items) {
     const conv = convert(item, { ...v, assets: loaded.assets }, others)
     conv.imgJobs.forEach((p) => allImages.add(p))
     conv.fileJobs.forEach((p) => allFiles.add(p))
-    const outPath = item.isIndex
+    const summary = firstParagraph(conv.body)
+    const date = item.created || isoDate(item.mtime)
+    const isIndex = item.isIndex
+    const outPath = isIndex
       ? `content/notes/${v.slug}/index.md`
       : `content/notes/${v.slug}/${item.slug}.md`
+    const title = isIndex ? v.title || basename(v.vaultPath) : item.title
     const fm = [
       '---',
-      `title: ${yaml(item.title)}`,
-      `date: ${item.created || isoDate(item.mtime)}`,
+      `title: ${yaml(title)}`,
+      `date: ${date}`,
       `series: ${yaml(v.series || '')}`,
       `project: ${yaml(v.project || v.title || '')}`,
       `volume: ${v.slug}`,
-      item.order ? `order: "${item.order}"` : null,
+      !isIndex && item.order ? `order: "${item.order}"` : null,
       `tags: [${item.tags.join(', ')}]`,
-      `summary: ${yaml(firstParagraph(conv.body))}`,
+      `summary: ${yaml(summary)}`,
       `source: ${yaml(relative(VAULT, item.path).replace(/\\/g, '/'))}`,
       '---',
       '',
@@ -309,10 +320,20 @@ for (const v of volList) {
       .filter((x) => x !== null)
       .join('\n')
     const full = fm + conv.body
+    if (isIndex) indexFull = full
+    else
+      noteMeta.push({
+        slug: item.slug,
+        title,
+        order: item.order || '',
+        date,
+        tags: item.tags,
+        summary,
+      })
     rows.push({
-      order: item.order || '—',
+      order: isIndex ? '—' : item.order || '—',
       file: item.file,
-      title: item.title,
+      title,
       chars: (conv.body.match(/[\u4e00-\u9fff]/g) || []).length,
       img: conv.imgJobs.length,
       file2: conv.fileJobs.length,
@@ -324,11 +345,13 @@ for (const v of volList) {
       out: outPath,
       warn: conv.warn,
     })
-    if (PREVIEW ? item.file === PREVIEW : !previewText && !item.isIndex) previewText = full
-    if (WRITE) {
+    if (PREVIEW ? item.file === PREVIEW : !previewText && !isIndex) previewText = full
+    if (WRITE && !isIndex) {
       const abs = join(process.cwd(), outPath)
       mkdirSync(join(abs, '..'), { recursive: true })
       writeFileSync(abs, full, 'utf8')
+    }
+    if (WRITE) {
       for (const p of conv.imgJobs) {
         const dst = join(process.cwd(), 'public/images', v.slug, webName(basename(p)))
         mkdirSync(join(dst, '..'), { recursive: true })
@@ -340,6 +363,30 @@ for (const v of volList) {
         copyFileSync(p, dst)
       }
     }
+  }
+
+  // 册首页：vault 里没有 README/@ 索引页时也要有一个（否则栏目没有落地页）
+  if (!indexFull) {
+    indexFull = [
+      '---',
+      `title: ${yaml(v.title || basename(v.vaultPath))}`,
+      `date: ${noteMeta.at(0)?.date || isoDate(Date.now())}`,
+      `series: ${yaml(v.series || '')}`,
+      `project: ${yaml(v.project || v.title || '')}`,
+      `volume: ${v.slug}`,
+      `tags: []`,
+      `summary: ${yaml(`《${v.title || basename(v.vaultPath)}》共 ${noteMeta.length} 篇笔记。`)}`,
+      'source: (自动生成)',
+      '---',
+      '',
+    ].join('\n')
+  }
+  // 说明：册清单（标题/顺序/日期/摘要）不落盘，改由 vite 插件在构建期扫 frontmatter 生成，
+  // 所以内容目录里只要多一个 .md 就会出现，不需要重跑同步脚本。
+  if (WRITE) {
+    const dir = join(process.cwd(), 'content/notes', v.slug)
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'index.md'), indexFull, 'utf8')
   }
 
   const imgBytes = [...allImages].reduce((n, p) => n + statSync(p).size, 0)

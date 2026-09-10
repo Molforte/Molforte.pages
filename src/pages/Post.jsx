@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPostBySlug, getNeighbors, formatDate, readingMinutes } from '../lib/content.js'
 import { renderMarkdown } from '../lib/markdown.js'
-import { highlightCodeBlock } from '../lib/highlight.js'
 import { SITE } from '../site.js'
 import NotFound from './NotFound.jsx'
+import MarkdownBody from '../components/MarkdownBody.jsx'
 
 function PagerItem({ to, label, title, align }) {
   if (!to) {
@@ -28,7 +28,6 @@ function PagerItem({ to, label, title, align }) {
 export default function Post() {
   const { slug } = useParams()
   const post = getPostBySlug(slug)
-  const bodyRef = useRef(null)
 
   const html = useMemo(() => (post ? renderMarkdown(post.content) : ''), [post])
 
@@ -42,14 +41,6 @@ export default function Post() {
       if (desc && prev) desc.setAttribute('content', prev)
     }
   }, [post])
-
-  // 渲染完成后对代码块做语法高亮
-  useEffect(() => {
-    if (!bodyRef.current) return
-    bodyRef.current.querySelectorAll('pre code').forEach((el) => {
-      highlightCodeBlock(el)
-    })
-  }, [html])
 
   if (!post) return <NotFound />
 
@@ -77,7 +68,7 @@ export default function Post() {
         </p>
       </header>
 
-      <div ref={bodyRef} className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
+      <MarkdownBody html={html} />
 
       <nav className="post__pager" aria-label="文章上下篇">
         <PagerItem to={left ? `/post/${left.slug}` : null} label="较新的文章" title={left?.title} />
