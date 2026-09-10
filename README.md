@@ -183,6 +183,41 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
   `dock` / `dock-glass` / `apptabbar` / `search-island` / `search-backdrop` 规则里；
 - 深浅色都由 `:root` / `:root[data-theme='dark']` 里的 token 控制，换色只改这两处。
 
+## 设计规则（全局，改样式时照做）
+
+### 1）圆角只用这几档（对齐苹果）
+
+| token | 值 | 用在哪 |
+| --- | --- | --- |
+| `--r-xs` | 8px | 标签芯片、悬浮气泡、行内代码 |
+| `--r-sm` | 12px | 图标按钮（主题切换） |
+| `--r-md` | 16px | 列表行、图片、代码块 |
+| `--r-lg` | 20px | 卡片、归档 hero、归档分组卡 |
+| `--r-xl` | 28px | 搜索浮层 |
+| `--r-pill` | 999px | 胶囊（底栏标签/选中胶囊）、圆形 |
+
+底栏两个岛的半径由 `GlassSurface` 以数值 props 传：主岛 **34px**（= 岛高一半，胶囊）、
+搜索岛 **999px**（正圆）。改 `--dock-h` 时记得同步主岛半径（`BottomDock.jsx`）。
+
+### 2）边距 = 圆角半径
+
+把文字块当成一个方格：**文字到圆角曲线的距离 = 该容器的圆角半径**，
+所以卡片内边距直接写 `padding: var(--r-lg)`，而不是随手给数字。
+
+现有对应：卡片 20/20、归档 hero 20/20、归档分组卡与行左右 20、
+搜索浮层与结果行左右 28、代码块 16/16、芯片/气泡/行内代码左右 8、主题按钮 12/12。
+
+唯一例外是**胶囊**（底栏标签与选中胶囊）：两端本来就是完整圆弧，
+内容由「胶囊格」居中承载，不套用这条规则。
+
+### 3）字体
+
+- 正文：Apple → **苹方**（`PingFang SC`）；Android → **思源**（`Source Han Sans SC` / `Noto Sans CJK SC`）；Windows → **雅黑**（`Microsoft YaHei`）；拉丁优先走 SF / Segoe UI；
+- 代码：**Sarasa Mono SC**，自托管精简子集 `src/assets/fonts/sarasa-mono-sc-subset.woff2`，缺字自动回落系统等宽；
+- 重新生成子集：`node scripts/build-font-subset.mjs "<SarasaMonoSC-Regular.ttf 路径>"`
+  （源字体从清华镜像取：<https://mirrors.tuna.tsinghua.edu.cn/github-release/be5invis/Sarasa-Gothic/>）；
+- 许可：Sarasa Gothic © be5invis，SIL OFL 1.1（子集与说明见 `third_party/sarasa-gothic/`）。
+
 ## 已知取舍
 
 - 没有目录、RSS——按“功能贴近上下文、不为不存在而存在”的原则，等真正需要再加
