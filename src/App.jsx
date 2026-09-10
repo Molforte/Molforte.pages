@@ -18,19 +18,23 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
   return (
     <>
       <div className="site-frame">
         <main className="site-main">
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/archive" element={<Archive />} />
-            <Route path="/friends" element={<StaticPage slug="friends" />} />
-            <Route path="/about" element={<StaticPage slug="about" />} />
-            <Route path="/post/:slug" element={<Post />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          {/* key = 路径：每次路由切换重放一次入场动效 */}
+          <div className="page-enter" key={pathname}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/archive" element={<Archive />} />
+              <Route path="/friends" element={<StaticPage slug="friends" />} />
+              <Route path="/about" element={<StaticPage slug="about" />} />
+              <Route path="/post/:slug" element={<Post />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
         </main>
         <Footer />
       </div>

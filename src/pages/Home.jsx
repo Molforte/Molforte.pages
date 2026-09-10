@@ -21,8 +21,8 @@ export default function Home() {
       </header>
 
       <ol className="post-index">
-        {posts.map((post) => (
-          <li className="post-card" key={post.slug}>
+        {posts.map((post, index) => (
+          <li className="post-card" key={post.slug} style={{ '--i': Math.min(index, 8) }}>
             <Link className="post-card__link" to={`/post/${post.slug}`}>
               <h2 className="post-card__title">{post.title}</h2>
               <p className="post-card__summary">{post.summary}</p>

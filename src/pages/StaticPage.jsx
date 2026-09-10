@@ -4,6 +4,7 @@ import { renderMarkdown } from '../lib/markdown.js'
 import hljs from '../lib/highlight.js'
 import { SITE } from '../site.js'
 import NotFound from './NotFound.jsx'
+import Reveal from '../components/Reveal.jsx'
 
 /** 通用静态单页：渲染 content/pages/<slug>.md */
 export default function StaticPage({ slug }) {
@@ -30,11 +31,11 @@ export default function StaticPage({ slug }) {
   if (!page) return <NotFound />
 
   return (
-    <div className="static-page">
+    <Reveal as="div" className="static-page">
       <header>
         <h1 className="page__title">{page.title}</h1>
       </header>
       <div ref={bodyRef} className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
-    </div>
+    </Reveal>
   )
 }

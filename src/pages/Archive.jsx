@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { posts, formatDate, groupByProject, readingMinutes } from '../lib/content.js'
 import { SITE } from '../site.js'
+import Reveal from '../components/Reveal.jsx'
 
 export default function Archive() {
   useEffect(() => {
@@ -43,9 +44,9 @@ export default function Archive() {
 
       {posts.length === 0 && <p className="archive-empty">还没有文章。</p>}
 
-      {/* 每个项目一张大卡片，标题与条目都包在里面 */}
-      {groups.map((group) => (
-        <section className="archive-group-card" key={group.name}>
+      {/* 每个项目一张大卡片，标题与条目都包在里面；滚动进入时淡入 */}
+      {groups.map((group, index) => (
+        <Reveal as="section" className="archive-group-card" key={group.name} i={Math.min(index, 6)}>
           <header className="archive-group-card__head">
             <h2 className="archive-group-card__name">{group.name}</h2>
             <span className="archive-group-card__count">{group.items.length} 篇</span>
@@ -72,7 +73,7 @@ export default function Archive() {
               </li>
             ))}
           </ol>
-        </section>
+        </Reveal>
       ))}
     </div>
   )

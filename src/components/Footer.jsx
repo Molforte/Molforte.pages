@@ -1,6 +1,7 @@
 import { posts } from '../lib/content.js'
 import { SITE } from '../site.js'
 import { useTheme } from '../theme.js'
+import Reveal from './Reveal.jsx'
 
 // 一些常见中文作品的约略字数，用来给“已经写了多少字”找个参照
 const WORKS = [
@@ -65,7 +66,7 @@ export default function Footer() {
     : '摩尔还没有开始写……'
 
   return (
-    <footer className="site-footer">
+    <Reveal as="footer" className="site-footer">
       <div className="site-footer__row">
         <p className="site-footer__line">
           © {since === year ? year : `${since}–${year}`} {SITE.author} · {SITE.footerNote}
@@ -77,10 +78,12 @@ export default function Footer() {
           aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
           title={theme === 'dark' ? '浅色' : '深色'}
         >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          <span className="theme-toggle__icon" key={theme}>
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </span>
         </button>
       </div>
       <p className="site-footer__stat">{stat}</p>
-    </footer>
+    </Reveal>
   )
 }

@@ -221,8 +221,12 @@ export default function BottomDock() {
               <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
             ) : (
               <ul className="search-panel__list">
-                {results.map((post) => (
-                  <li className="search-panel__item" key={post.slug}>
+                {results.map((post, index) => (
+                  <li
+                    className="search-panel__item"
+                    key={post.slug}
+                    style={{ '--i': Math.min(index, 8) }}
+                  >
                     <Link to={`/post/${post.slug}`} onClick={close}>
                       <time dateTime={post.date}>{formatDate(post.date)}</time>
                       <span>{post.title}</span>

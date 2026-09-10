@@ -66,6 +66,12 @@
   /* 布局：全站统一内容宽度（比之前更宽、不追 60%） */
   --measure: min(76vw, 60rem); /* 所有页面共用；超宽屏封顶 60rem */
   --measure-phone: 46rem; /* 小屏回退宽度 */
+
+  /* 动效 token：统一时长与缓动，避免各处各写一套 */
+  --dur-fast: 0.15s;
+  --dur: 0.28s;
+  --dur-slow: 0.5s;
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   /* 底部功能区：主岛高度 = 搜索副岛直径（两者共用，保证等大） */
   --dock-h: 3.96rem;
   color-scheme: light;
@@ -459,7 +465,6 @@ a {
   border-radius: 1.4rem;
   box-shadow: var(--panel-shadow);
   overflow: hidden;
-  animation: rise 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes fade {
@@ -1356,6 +1361,147 @@ a {
   }
 }
 
+/* ============================================================
+   动效系统
+   原则：只在“表达层级/状态”的地方动，统一时长与缓动；
+   一律使用独立的 translate / scale / rotate 属性而不是 transform，
+   以免和悬停用的 transform 互相覆盖。
+   ============================================================ */
+
+@keyframes rise-soft {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0.5;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes icon-in {
+  from {
+    opacity: 0;
+    rotate: -60deg;
+    scale: 0.8;
+  }
+  to {
+    opacity: 1;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* 路由切换：整页入场 */
+.page-enter {
+  animation: rise-soft var(--dur-slow) var(--ease-soft) both;
+}
+
+/* 首页卡片：按顺序错峰入场 */
+.post-card {
+  animation: rise-soft var(--dur-slow) var(--ease-soft) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* 滚动进入（配合 <Reveal />） */
+.reveal {
+  opacity: 0;
+  translate: 0 14px;
+  transition:
+    opacity var(--dur-slow) var(--ease-soft),
+    translate var(--dur-slow) var(--ease-soft);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* 底栏：整体上浮入场；选中的图标弹一下；悬停微抬 */
+.dock {
+  animation: dock-in var(--dur-slow) var(--ease-soft) both;
+}
+
+.apptabbar__tab.is-active .apptabbar__icon-wrap {
+  animation: pop-in 0.32s var(--ease-soft);
+}
+
+.apptabbar__icon-wrap {
+  transition:
+    translate var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.apptabbar__tab:hover .apptabbar__icon-wrap {
+  translate: 0 -1px;
+}
+
+/* 搜索浮层与结果列表 */
+.search-panel {
+  animation: panel-in 0.22s var(--ease-soft) both;
+}
+
+.search-panel__item {
+  animation: rise-soft 0.3s var(--ease-soft) both;
+  animation-delay: calc(var(--i, 0) * 25ms);
+}
+
+/* 主题切换按钮：图标旋入 */
+.theme-toggle__icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  animation: icon-in 0.32s var(--ease-soft) both;
+}
+
+/* 翻篇链接：标题轻微上移 */
+.pager-item__title {
+  transition:
+    color var(--dur-fast) ease,
+    translate var(--dur-fast) ease;
+}
+
+.pager-item:hover .pager-item__title {
+  translate: 0 -1px;
+}
+
 /* 尊重系统“减弱动态效果” */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1364,5 +1510,12 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* 滚动进入的元素直接显示，绝不留在隐藏态 */
+  .reveal {
+    opacity: 1 !important;
+    translate: none !important;
+    transition: none !important;
   }
 }
