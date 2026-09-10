@@ -117,6 +117,90 @@ const card = await page.evaluate(() => {
   }
 })
 
+// ---- 归档：栏目卡（第一行是系列/篇数那行）----
+await page.goto(`${BASE}/archive`, { waitUntil: 'domcontentloaded', timeout: 90000 })
+await page.waitForTimeout(1500)
+const [columnSeries] = await measure([['.column-card__series', '.column-card']])
+const column = await page.evaluate(() => {
+  const el = document.querySelector('.column-card')
+  if (!el) return null
+  const b = (n) => n.getBoundingClientRect()
+  const excerpt = el.querySelector('.column-card__excerpt')
+  const foot = el.querySelector('.column-card__foot')
+  return {
+    h: +b(el).height.toFixed(2),
+    excerptLines: +(b(excerpt).height / parseFloat(getComputedStyle(excerpt).lineHeight)).toFixed(
+      2,
+    ),
+    footFromBottom: +(b(el).bottom - b(foot).bottom).toFixed(2),
+    overflow: el.scrollHeight - el.clientHeight,
+  }
+})
+
+// ---- 册页：笔记列表 ----
+const volHref = await page
+  .$eval('.column-card__link', (a) => a.getAttribute('href'))
+  .catch(() => null)
+let volume = null
+let groupName2 = null
+if (volHref) {
+  await page.goto(new URL(volHref, BASE).href, { waitUntil: 'domcontentloaded', timeout: 90000 })
+  await page.waitForTimeout(1200)
+  // 先滚到底让 Reveal 全部播完（未播完的元素带 translate，会污染墨迹测量），再回顶部
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await page.waitForTimeout(1400)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(400)
+  const [noteOrder] = await measure([['.note-row__order', '.note-list']])
+  const volumeRow = await page.evaluate(() => {
+    const card = document.querySelector('.note-list')
+    if (!card) return null
+    const ctx = document.createElement('canvas').getContext('2d')
+    const ink = (el) => {
+      const cs = getComputedStyle(el)
+      ctx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily
+      const t = el.textContent.trim()
+      const m = ctx.measureText(t)
+      const fs = parseFloat(cs.fontSize)
+      const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight)
+      const b = el.getBoundingClientRect()
+      const baseline = b.top + (lh - fs) / 2 + m.fontBoundingBoxAscent
+      return {
+        left: b.left - m.actualBoundingBoxLeft,
+        top: baseline - m.actualBoundingBoxAscent,
+        bottom: baseline + m.actualBoundingBoxDescent,
+      }
+    }
+    const items = (row) => [
+      ...row.querySelectorAll('.note-row__order, .note-row__title, .note-row__date'),
+    ]
+    const rows = [...document.querySelectorAll('.note-row')]
+    const cb = card.getBoundingClientRect()
+    const first = items(rows[0]).map(ink)
+    const last = items(rows.at(-1)).map(ink)
+    const spread = (arr) => +(Math.max(...arr) - Math.min(...arr)).toFixed(2)
+    const orders = rows.map((r) => ink(r.querySelector('.note-row__order')).left)
+    // 标题首字不同（L / D / 准…）墨迹左边界天然差一点点，这条规则量的是盒子左边界
+    const titles = rows.map((r) => r.querySelector('.note-row__title').getBoundingClientRect().left)
+    const dateRights = rows.map(
+      (r) => r.querySelector('.note-row__date').getBoundingClientRect().right,
+    )
+    return {
+      rows: rows.length,
+      orderSpread: spread(orders),
+      titleSpread: spread(titles),
+      dateSpread: spread(dateRights),
+      // 首行：最上的墨迹 + 最左的墨迹（窄屏会折行，取极值才对）
+      firstLeft: +(Math.min(...first.map((i) => i.left)) - cb.left).toFixed(2),
+      firstTop: +(Math.min(...first.map((i) => i.top)) - cb.top).toFixed(2),
+      // 末行：最深的一条文字墨迹到卡片下边
+      lastInkFromBottom: +(cb.bottom - Math.max(...last.map((i) => i.bottom))).toFixed(2),
+    }
+  })
+  groupName2 = await page.$eval('.volume__title', (el) => el.textContent.trim()).catch(() => null)
+  volume = { ...volumeRow, orderInk: noteOrder }
+}
+
 const checks = {
   '归档 hero 标题墨迹左右一致': near(heroTitle.left, R, 3) && near(heroTitle.top),
   分组卡标题墨迹贴角: near(groupName.left, R, 1.5) && near(groupName.top),
@@ -128,6 +212,17 @@ const checks = {
   '首页摘要正好 3 行': Math.abs(card.summaryLines - 3) < 0.02,
   首页卡片不溢出: card.overflow <= 0,
   首页元信息贴卡片底: near(card.metaFromBottom, R, 3),
+  栏目卡第一行墨迹贴角: columnSeries ? near(columnSeries.left) && near(columnSeries.top) : false,
+  栏目卡摘要整数行: column
+    ? Math.abs(column.excerptLines - Math.round(column.excerptLines)) < 0.02
+    : false,
+  栏目卡不溢出: column ? column.overflow <= 0 : false,
+  册内笔记标题左边界齐平: volume ? volume.titleSpread <= 0.5 : false,
+  册内角标左边界齐平: volume ? volume.orderSpread <= 0.5 : false,
+  // 同一行里角标/标题/日期共基线，墨迹顶天然差 ~4px（角标 20.4、标题 16.3），故放宽到 ±5
+  册内首行墨迹贴角: volume ? near(volume.firstLeft) && near(volume.firstTop, R, 5) : false,
+  册内日期成一列: volume ? volume.dateSpread <= 0.5 : false,
+  '册内末行到卡片下边 = 圆角': volume ? near(volume.lastInkFromBottom, R, 3) : false,
 }
 
 const failed = Object.entries(checks).filter(([, ok]) => !ok)
@@ -145,6 +240,10 @@ console.log(
       cardTitle,
       card,
       spread,
+      columnSeries,
+      column,
+      volume,
+      groupName2,
       checks,
     },
     null,
