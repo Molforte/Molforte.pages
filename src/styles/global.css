@@ -654,7 +654,10 @@ a {
 
 .post-card {
   margin: 0;
-  height: 12.5rem; /* 固定舒适高度（更矮） */
+  /* 摘要固定 3 行后就不必再预留余量：高度贴合内容，标题折两行时卡片自己变高。
+     11rem 是「一行标题」时的舒适下限（此时摘要与元信息之间约 21px，正好一个圆角半径）。 */
+  display: flex; /* 让 .post-card__link 撑满卡片，元信息的 auto 外边距才能贴到底 */
+  min-height: 11rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--r-lg);
@@ -674,8 +677,8 @@ a {
 
 .post-card__link {
   display: flex;
+  flex: 1; /* 撑满卡片（卡片用 min-height，不能靠 height: 100%） */
   flex-direction: column;
-  height: 100%;
   padding: var(--r-lg); /* = 圆角半径 */
   color: var(--text);
   text-decoration: none;
@@ -1373,7 +1376,7 @@ a {
   }
 
   .post-card {
-    height: 11.5rem;
+    min-height: 10.5rem; /* 窄屏下限；实际高度随标题行数贴合 */
   }
 
   .post-card__title {

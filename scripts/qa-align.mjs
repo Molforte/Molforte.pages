@@ -112,6 +112,7 @@ const card = await page.evaluate(() => {
     cardH: +b(el).height.toFixed(2),
     summaryLines: +(b(sum).height / parseFloat(getComputedStyle(sum).lineHeight)).toFixed(2),
     metaFromBottom: +(b(el).bottom - b(meta).bottom).toFixed(2),
+    gapSummaryToMeta: +(b(meta).top - b(sum).bottom).toFixed(2),
     overflow: el.scrollHeight - el.clientHeight,
   }
 })
