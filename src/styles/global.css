@@ -764,6 +764,13 @@ a {
   border-radius: var(--r-lg);
 }
 
+/* 首页分区里的「还有 N 个项目 · 全部项目 →」紧跟在卡片后面，不加分隔线 */
+.home-section .home-foot {
+  margin: 1.1rem 0 0;
+  border-top: 0;
+  padding-top: 0;
+}
+
 .home-foot {
   margin: 3rem 0 0;
   border-top: 1px solid var(--hairline);
