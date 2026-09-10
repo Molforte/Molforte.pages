@@ -35,7 +35,7 @@ src/
   lib/liquidGlass.js    # 底栏液态玻璃（适配自 shuding/liquid-glass）
   lib/markdown.js       # Markdown -> HTML（站外链接新开页）
   lib/highlight.js      # 按需注册的语言
-  components/           # BottomDock（悬浮岛 + 搜索）/ Footer
+  components/           # BottomDock（悬浮岛 + 搜索）/ BlendCursor / Footer
   pages/                # Home / Archive / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
@@ -158,6 +158,20 @@ React Router 根据真实 URL 渲染对应文章。这是 GitHub Pages 上 SPA �
 - 没有目录、RSS——按“功能贴近上下文、不为不存在而存在”的原则，等真正需要再加
   （它们会加在正文/侧栏附近，而不是重新长出一条顶栏）。
 - 手机上只是同一份内容的自适应，没有单独的移动端导航。
+
+## 效果来源
+
+站上两个交互效果都不是自创的，来源都在这里说清楚：
+
+1. **底栏液态玻璃** —— 来自 [shuding/liquid-glass](https://github.com/shuding/liquid-glass)
+   （MIT，© 2025 Shu Ding）。原件未改，存在 `third_party/liquid-glass/`；
+   适配层是 `src/lib/liquidGlass.js`，改动说明见该目录 README。
+2. **“札记”标题的悬停效果** —— 复刻 [deepseek.com](https://www.deepseek.com/en/) 首页
+   “Into the Unknown” 的差值混合光标：指针进入标题区域后挂一块全屏 canvas
+   （`mix-blend-mode: difference`），白色圆点跟随鼠标，**经过文字时反相**；
+   常态半径 16px，进入 `[data-cursor="blend"]` 放大到 32px，离开则缩回淡出；
+   触屏与 `prefers-reduced-motion` 下不启用。实现见 `src/components/BlendCursor.jsx`
+   （按上游公开页面里的行为与数值重写，未复制其代码）。
 
 ## 免责网络备注
 

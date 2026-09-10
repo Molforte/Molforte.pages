@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { posts, formatDate, readingMinutes } from '../lib/content.js'
 import { SITE } from '../site.js'
+import BlendCursor from '../components/BlendCursor.jsx'
 
 export default function Home() {
   useEffect(() => {
@@ -11,7 +12,11 @@ export default function Home() {
   return (
     <>
       <header className="masthead">
-        <h1 className="masthead__title">{SITE.title}</h1>
+        <BlendCursor>
+          <h1 className="masthead__title">
+            <span data-cursor="blend">{SITE.title}</span>
+          </h1>
+        </BlendCursor>
         <p className="masthead__tagline">{SITE.tagline}</p>
       </header>
 

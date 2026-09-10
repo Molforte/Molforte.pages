@@ -530,6 +530,31 @@ a {
 }
 
 /* ============================================================
+   差值混合光标（复刻 deepseek.com 首页 "Into the Unknown" 效果）
+   ============================================================ */
+.cursor-region {
+  width: fit-content;
+}
+
+.cursor-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  mix-blend-mode: difference; /* 白点经过之处反相 → 文字被“翻转” */
+}
+
+/* 触屏不启用（与上游一致） */
+@media (hover: none), (pointer: coarse) {
+  .cursor-canvas {
+    display: none;
+  }
+}
+
+/* ============================================================
    首页
    ============================================================ */
 .masthead {
