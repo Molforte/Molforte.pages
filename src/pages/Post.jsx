@@ -42,7 +42,10 @@ export default function Post() {
     }
   }, [post])
 
-  const html = useMemo(() => (content ? renderMarkdown(content) : ''), [content])
+  const html = useMemo(
+    () => (content ? renderMarkdown(content, { volume: 'articles' }) : ''),
+    [content],
+  )
 
   useEffect(() => {
     if (!post) return

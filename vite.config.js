@@ -145,27 +145,33 @@ function contentIndex() {
  */
 function materializeImages() {
   const copyAll = () => {
-    const srcRoot = join(process.cwd(), PROJECTS_DIR)
-    if (!existsSync(srcRoot)) return
     let copied = 0
-    // img/ → public/images/<册>/，files/ → public/files/<册>/
-    for (const [sub, target] of [
-      ['img', 'images'],
-      ['files', 'files'],
-    ]) {
-      for (const slug of readdirSync(srcRoot)) {
-        const from = join(srcRoot, slug, sub)
-        if (!existsSync(from)) continue
-        const dstDir = join(process.cwd(), 'public', target, slug)
-        mkdirSync(dstDir, { recursive: true })
-        for (const f of readdirSync(from)) {
-          const src = join(from, f)
-          const to = join(dstDir, f)
-          if (!statSync(src).isFile()) continue
-          if (!existsSync(to) || statSync(src).mtimeMs > statSync(to).mtimeMs) {
-            copyFileSync(src, to)
-            copied++
-          }
+    const jobs = [] // [源目录, 目标目录]
+    // 册：Projects/<册>/{img,files} → public/{images,files}/<册>
+    const projectsDir = join(process.cwd(), PROJECTS_DIR)
+    if (existsSync(projectsDir)) {
+      for (const slug of readdirSync(projectsDir)) {
+        jobs.push([join(projectsDir, slug, 'img'), `public/images/${slug}`])
+        jobs.push([join(projectsDir, slug, 'files'), `public/files/${slug}`])
+      }
+    }
+    // 单篇：Articles|Fragments/{img,files} → public/{images,files}/{articles|fragments}
+    for (const flat of ['Articles', 'Fragments']) {
+      const key = flat.toLowerCase()
+      jobs.push([join(process.cwd(), LIB, flat, 'img'), `public/images/${key}`])
+      jobs.push([join(process.cwd(), LIB, flat, 'files'), `public/files/${key}`])
+    }
+    for (const [from, dstRel] of jobs) {
+      if (!existsSync(from)) continue
+      const dstDir = join(process.cwd(), dstRel)
+      mkdirSync(dstDir, { recursive: true })
+      for (const f of readdirSync(from)) {
+        const src = join(from, f)
+        const to = join(dstDir, f)
+        if (!statSync(src).isFile()) continue
+        if (!existsSync(to) || statSync(src).mtimeMs > statSync(to).mtimeMs) {
+          copyFileSync(src, to)
+          copied++
         }
       }
     }

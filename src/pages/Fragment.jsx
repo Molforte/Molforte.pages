@@ -23,7 +23,10 @@ export default function Fragment() {
     }
   }, [meta])
 
-  const html = useMemo(() => (content ? renderMarkdown(content) : ''), [content])
+  const html = useMemo(
+    () => (content ? renderMarkdown(content, { volume: 'fragments' }) : ''),
+    [content],
+  )
 
   useEffect(() => {
     if (meta) document.title = `${meta.title} · ${SITE.title}`

@@ -16,7 +16,7 @@ import {
   mkdirSync,
   copyFileSync,
 } from 'node:fs'
-import { join, extname, basename, relative } from 'node:path'
+import { join, extname, basename, relative, dirname } from 'node:path'
 // 与站点同一套字数规则：围栏代码块（``` / ~~~，语言任意）与行内代码都不计入
 import { countChars } from '../src/lib/text.js'
 
@@ -28,7 +28,7 @@ if (!exists(CONFIG)) {
   )
   process.exit(1)
 }
-const { VAULT, volumes } = await import(CONFIG.href)
+const { VAULT, volumes, singles = [] } = await import(CONFIG.href)
 
 const WRITE = process.argv.includes('--write')
 const ONLY = (process.argv.find((a) => a.startsWith('--volume=')) || '').split('=')[1]
@@ -455,6 +455,117 @@ for (const v of volList) {
     const f = `.qa/preview-${v.slug}.md`
     writeFileSync(f, previewText, 'utf8')
     console.log(`  转换预览（第一篇）→ ${f}`)
+  }
+}
+
+// ---------- 孤品：单篇指定文件（可跨 vault）----------
+if (singles.length && !ONLY) {
+  // 已发布笔记索引，供 [[链接]] 解析
+  const allNotes = new Map()
+  for (const w of volList) {
+    const other = loadVolume(w)
+    if (other.error) continue
+    for (const it of other.items)
+      allNotes.set(key(it.name), {
+        volume: w.slug,
+        slug: it.isIndex ? '' : it.slug,
+        title: it.title,
+      })
+  }
+
+  console.log('\n=== 孤品（单篇）===')
+  for (const s of singles) {
+    const abs = s.file
+    if (!exists(abs)) {
+      console.error(`  ✗ 找不到文件: ${abs}`)
+      continue
+    }
+    const where = s.as === 'fragment' ? 'Fragments' : 'Articles'
+    // 同目录（含子目录，如 img/）里的图片/附件
+    const assets = new Map()
+    ;(function scan(d, depth = 0) {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        if (e.name.startsWith('.')) continue
+        const p = join(d, e.name)
+        if (e.isDirectory()) {
+          if (depth < 2) scan(p, depth + 1)
+        } else assets.set(basename(e.name).toLowerCase(), p)
+      }
+    })(dirname(abs))
+
+    const raw = readFileSync(abs, 'utf8')
+    const fm = RE_FM.exec(raw)
+    const fields = {}
+    if (fm) {
+      for (const line of fm[1].split(/\r?\n/)) {
+        const i = line.indexOf(':')
+        if (i > 0) fields[line.slice(0, i).trim()] = line.slice(i + 1).trim()
+      }
+    }
+    const name = basename(abs, '.md')
+    const item = {
+      path: abs,
+      file: basename(abs),
+      name,
+      title: s.title || parseOrderTitle(name).title,
+      order: '',
+      slug: s.slug || name,
+      isIndex: false,
+      body: fm ? raw.slice(fm[0].length) : raw,
+      created: (s.date || fields.created || fields.date || '').replace(/["']/g, '').slice(0, 10),
+      tags:
+        s.tags ||
+        (fields.tags
+          ? fields.tags
+              .replace(/^\[|\]$/g, '')
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : []),
+      mtime: statSync(abs).mtimeMs,
+    }
+    const conv = convert(item, { slug: where.toLowerCase(), assets }, allNotes)
+    const outPath = `articles/${where}/${item.slug}.md`
+    const full =
+      [
+        '---',
+        `title: ${yaml(item.title)}`,
+        `date: ${item.created || isoDate(item.mtime)}`,
+        `tags: [${item.tags.join(', ')}]`,
+        `summary: ${yaml(firstParagraph(conv.body))}`,
+        `source: ${yaml(s.vault ? relative(s.vault, abs).replace(/\\/g, '/') : basename(abs))}`,
+        '---',
+        '',
+        '',
+      ].join('\n') + conv.body
+
+    console.log(
+      `  ${where}/${item.slug}.md  ${countChars(conv.body)} 字 · 图 ${conv.imgJobs.length} · 链 ${conv.linksOk} 降 ${conv.degraded.length} 死 ${conv.dead.length} · 公式 ${conv.mathInline + conv.mathBlock * 2}`,
+    )
+    conv.warn.forEach((w) => console.log('    !', w))
+
+    if (WRITE) {
+      const out = join(process.cwd(), outPath)
+      mkdirSync(dirname(out), { recursive: true })
+      writeFileSync(out, full, 'utf8')
+      for (const p of conv.imgJobs) {
+        const dst = join(process.cwd(), 'articles', where, 'img', webName(basename(p)))
+        mkdirSync(dirname(dst), { recursive: true })
+        copyFileSync(p, dst)
+      }
+      for (const p of conv.fileJobs) {
+        const dst = join(process.cwd(), 'articles', where, 'files', webName(basename(p)))
+        mkdirSync(dirname(dst), { recursive: true })
+        copyFileSync(p, dst)
+      }
+    }
+    report.singles = report.singles || []
+    report.singles.push({
+      file: abs,
+      as: s.as || 'article',
+      out: outPath,
+      chars: countChars(conv.body),
+    })
   }
 }
 
