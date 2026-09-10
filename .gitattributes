@@ -6,3 +6,9 @@
 *.json text eol=lf
 *.yml text eol=lf
 *.svg text eol=lf
+*.mjs text eol=lf
+*.ps1 text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+LICENSE text eol=lf
+*.woff2 binary
