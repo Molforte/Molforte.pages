@@ -18,17 +18,19 @@ const errs = []
 p.on('pageerror', (e) => errs.push(String(e).slice(0, 140)))
 await p.goto(`${SITE}/`, { waitUntil: 'networkidle' })
 await p.waitForTimeout(600)
-out.home = await p.evaluate(() => ({
-  title: document.title,
-  h1: document.querySelector('.masthead__title')?.textContent?.trim(),
-  cards: document.querySelectorAll('.post-card').length,
-  dock: !!document.querySelector('.dock'),
-  liquidGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes(
-    'liquid-glass',
-  ),
-  theme: document.documentElement.dataset.theme,
-  hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-}))
+out.home = await p.evaluate(() => {
+  const glass = document.querySelector('.dock .glass-surface')
+  return {
+    title: document.title,
+    h1: document.querySelector('.masthead__title')?.textContent?.trim(),
+    cards: document.querySelectorAll('.post-card').length,
+    dock: !!document.querySelector('.dock'),
+    glassSurfaces: document.querySelectorAll('.dock .glass-surface').length,
+    glassBackdrop: glass ? getComputedStyle(glass).backdropFilter.includes('glass-filter') : false,
+    theme: document.documentElement.dataset.theme,
+    hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  }
+})
 out.homeErrors = errs
 
 // —— 深链（直接打开文章地址 = 走 404 回退）——
@@ -78,13 +80,14 @@ out.cursor = await p.evaluate(() => {
 // —— 深色模式 ——
 await p.click('.theme-toggle')
 await p.waitForTimeout(300)
-out.themeToggle = await p.evaluate(() => ({
-  theme: document.documentElement.dataset.theme,
-  bodyBg: getComputedStyle(document.body).backgroundColor,
-  stillGlass: (document.querySelector('.apptabbar')?.style.backdropFilter || '').includes(
-    'liquid-glass',
-  ),
-}))
+out.themeToggle = await p.evaluate(() => {
+  const glass = document.querySelector('.dock .glass-surface')
+  return {
+    theme: document.documentElement.dataset.theme,
+    bodyBg: getComputedStyle(document.body).backgroundColor,
+    stillGlass: glass ? getComputedStyle(glass).backdropFilter.includes('glass-filter') : false,
+  }
+})
 
 // —— 404 ——
 const p3 = await browser.newPage({ viewport: { width: 1366, height: 900 } })
