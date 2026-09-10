@@ -213,10 +213,15 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 ### 3）字体
 
 - 正文：Apple → **苹方**（`PingFang SC`）；Android → **思源**（`Source Han Sans SC` / `Noto Sans CJK SC`）；Windows → **雅黑**（`Microsoft YaHei`）；拉丁优先走 SF / Segoe UI；
-- 代码：**Sarasa Mono SC**，自托管精简子集 `src/assets/fonts/sarasa-mono-sc-subset.woff2`，缺字自动回落系统等宽；
-- 重新生成子集：`node scripts/build-font-subset.mjs "<SarasaMonoSC-Regular.ttf 路径>"`
-  （源字体从清华镜像取：<https://mirrors.tuna.tsinghua.edu.cn/github-release/be5invis/Sarasa-Gothic/>）；
-- 许可：Sarasa Gothic © be5invis，SIL OFL 1.1（子集与说明见 `third_party/sarasa-gothic/`）。
+- 代码：**Sarasa Mono SC**，自托管精简子集 `src/assets/fonts/sarasa-mono-sc-subset.woff2`（236 KB），缺字自动回落系统等宽；应用启动时用 FontFace API 显式加载（浏览器对未使用的 `@font-face` 会懒加载，不显式加载会一直停在 unloaded）；
+- 重新生成子集（两步）：
+
+  ```bash
+  node scripts/fetch-font-source.mjs                                  # 下载 + 解压官方字体（清华/南大镜像 → GitHub 代理兜底）
+  node scripts/build-font-subset.mjs ".fontsrc/ttf/SarasaMonoSC-Regular.ttf"   # 只留站点用到的字符
+  ```
+
+- 许可：Sarasa Gothic © Renzhi Li，SIL OFL 1.1（子集与说明见 `third_party/sarasa-gothic/`）。
 
 ## 已知取舍
 

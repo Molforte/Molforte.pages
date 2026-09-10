@@ -5,6 +5,19 @@
    约定：任何页面都没有顶栏；视觉层级靠字重、字号与留白表达。
    ============================================================ */
 
+/* ============================================================
+   字体
+   代码字体 Sarasa Mono SC：自托管精简子集（缺字自动回落系统等宽）。
+   子集由 scripts/build-font-subset.mjs 生成，许可见 third_party/sarasa-gothic/。
+   ============================================================ */
+@font-face {
+  font-family: 'Sarasa Mono SC Web';
+  src: url('../assets/fonts/sarasa-mono-sc-subset.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ---------- 设计 token ---------- */
 :root {
   --bg: #ffffff;
@@ -59,8 +72,8 @@
     system-ui, sans-serif;
   /* 代码：Sarasa Mono（自托管精简子集）；缺字回落到系统等宽 */
   --mono:
-    'Sarasa Mono SC', ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Code', 'JetBrains Mono',
-    Menlo, Consolas, monospace;
+    'Sarasa Mono SC', 'Sarasa Mono SC Web', ui-monospace, 'SF Mono', SFMono-Regular,
+    'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
 
   --gutter: clamp(1.5rem, 6vw, 2.5rem);
   /* 圆角体系：按苹果常用档位收敛，全站只用这几档 */

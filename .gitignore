@@ -6,3 +6,6 @@ dist/
 .DS_Store
 Thumbs.db
 npm-debug.log*
+
+# 字体源文件（本地下载，24MB+，不入库）
+.fontsrc/

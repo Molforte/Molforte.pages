@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { initTheme } from './theme.js'
+import { loadCodeFont } from './lib/fonts.js'
 import './styles/global.css'
 
 initTheme()
+loadCodeFont()
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

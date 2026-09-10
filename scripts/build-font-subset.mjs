@@ -11,9 +11,10 @@
 //        + content/ 与 src/ 里出现的所有字符 + 可选的 scripts/font-extra-chars.txt
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join, extname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import subsetFont from 'subset-font'
 
-const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const root = fileURLToPath(new URL('..', import.meta.url))
 const srcTtf = process.argv[2]
 if (!srcTtf || !existsSync(srcTtf)) {
   console.error('用法: node scripts/build-font-subset.mjs "<SarasaMonoSC-Regular.ttf 路径>"')
