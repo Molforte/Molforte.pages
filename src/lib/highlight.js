@@ -10,6 +10,10 @@ import python from 'highlight.js/lib/languages/python'
 import markdown from 'highlight.js/lib/languages/markdown'
 import yaml from 'highlight.js/lib/languages/yaml'
 import plaintext from 'highlight.js/lib/languages/plaintext'
+import c from 'highlight.js/lib/languages/c'
+import cpp from 'highlight.js/lib/languages/cpp'
+import matlab from 'highlight.js/lib/languages/matlab'
+import r from 'highlight.js/lib/languages/r'
 
 hljs.registerLanguage('bash', bash)
 hljs.registerLanguage('javascript', javascript)
@@ -21,6 +25,10 @@ hljs.registerLanguage('python', python)
 hljs.registerLanguage('markdown', markdown)
 hljs.registerLanguage('yaml', yaml)
 hljs.registerLanguage('plaintext', plaintext) // 纯文本块（```text / 无语言）不做着色
+hljs.registerLanguage('c', c) // 单片机/嵌入式语料主力
+hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('matlab', matlab)
+hljs.registerLanguage('r', r)
 hljs.registerAliases(['sh', 'shell', 'console'], { languageName: 'bash' })
 hljs.registerAliases(['html', 'htm'], { languageName: 'xml' })
 hljs.registerAliases(['js', 'jsx', 'mjs', 'cjs'], { languageName: 'javascript' })
@@ -28,6 +36,7 @@ hljs.registerAliases(['ts', 'tsx'], { languageName: 'typescript' })
 hljs.registerAliases(['md'], { languageName: 'markdown' })
 hljs.registerAliases(['yml'], { languageName: 'yaml' })
 hljs.registerAliases(['text', 'txt', 'plain'], { languageName: 'plaintext' })
+hljs.registerAliases(['c++', 'cc', 'h', 'hpp'], { languageName: 'cpp' })
 
 /**
  * 高亮单个代码块；未注册的语言原样保留。
