@@ -20,13 +20,18 @@
   --accent-hover: rgba(0, 113, 227, 0.07);
 
   /* 液态玻璃材质：刻意不随主题变化。
-     纯玻璃 = 折射 + 边缘，不用面色、不用渐变；下面是同一份材质 */
+     纯玻璃 = 折射 + 边缘，不用面色；边缘是一圈亮度渐变的极细高光，而不是均匀白线 */
   --glass-bg: rgba(130, 130, 140, 0.16);
-  --glass-border: rgba(255, 255, 255, 0.38);
   --glass-solid: rgba(255, 255, 255, 0.94); /* 仅无 backdrop-filter 时的兜底（此值随主题） */
+  --glass-rim: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.05) 55%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
   --glass-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.07),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3);
   --segment-sheen: rgba(255, 255, 255, 0.45);
   --active-segment: rgba(29, 29, 31, 0.09);
   --tooltip-bg: rgba(29, 29, 31, 0.92);
@@ -274,17 +279,24 @@ a {
   min-height: var(--dock-h);
   padding: 0.22rem;
   border-radius: 2rem;
-  background: var(--glass-bg); /* 磨砂调浅：更透明 */
+  /* 边缘：环状渐变高光（上亮、侧淡、下回光），比均匀 1px 白线自然 */
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
+    var(--glass-rim) border-box;
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   backdrop-filter: blur(16px) saturate(1.25);
-  border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .apptabbar,
-  .search-island {
-    background: var(--glass-solid);
+  .search-island,
+  .search-panel {
+    border-color: transparent;
+    background:
+      linear-gradient(var(--glass-solid), var(--glass-solid)) padding-box,
+      var(--glass-rim) border-box;
   }
 }
 
@@ -395,10 +407,12 @@ a {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--glass-bg);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
+    var(--glass-rim) border-box;
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   backdrop-filter: blur(16px) saturate(1.25);
-  border: 1px solid var(--glass-border);
   color: var(--text-2);
   cursor: pointer;
   transition:
@@ -439,10 +453,13 @@ a {
 
 .search-panel {
   width: min(92vw, 40rem);
-  background: var(--panel-bg);
+  /* 与底栏同一种边缘处理：环状渐变高光 */
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box,
+    var(--glass-rim) border-box;
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
-  border: 1px solid var(--glass-border);
   border-radius: 1.4rem;
   box-shadow: var(--panel-shadow);
   overflow: hidden;
