@@ -1,4 +1,4 @@
-# 把本地仓库推到 GitHub 并触发 Pages 部署。
+﻿# 把本地仓库推到 GitHub 并触发 Pages 部署。
 # 用法（Windows PowerShell 5.1 / PowerShell 7 都可以）：
 #   powershell -ExecutionPolicy Bypass -File scripts\push-to-github.ps1
 #
