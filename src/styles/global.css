@@ -79,13 +79,14 @@
 
   --selection: rgba(10, 132, 255, 0.35);
   --accent-hover: rgba(10, 132, 255, 0.18);
-  --glass-bg: rgba(28, 28, 30, 0.72);
+  --glass-bg: rgba(22, 22, 24, 0.66);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-solid: rgba(28, 28, 30, 0.9);
   --glass-shadow:
     0 8px 28px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --glass-sheen-top: rgba(255, 255, 255, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  /* 深色不用面渐变高光（那会显旧），改用上面 1px 内边缘提亮 */
+  --glass-sheen-top: transparent;
   --segment-sheen: rgba(255, 255, 255, 0.12);
   --active-segment: rgba(255, 255, 255, 0.12);
   --tooltip-bg: rgba(255, 255, 255, 0.95);
@@ -300,6 +301,11 @@ a {
   .search-island {
     background: var(--glass-solid);
   }
+}
+
+/* 深色下不要那层“面渐变”高光（显旧），只留 1px 内边缘 */
+:root[data-theme='dark'] .apptabbar::before {
+  background: none;
 }
 
 .apptabbar__tabs {
