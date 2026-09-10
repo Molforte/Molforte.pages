@@ -235,6 +235,24 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 归档分组卡的行距同样是 20 的网格：卡头下内边距 10 + 行内边距 10 = 20；
 末行文字到卡片下边 ≈ 21（`.archive-rows` 的 `padding-bottom: 7px` 是为此标定的）。
 
+#### 2.2）卡片摘要必须锁死整数行
+
+首页摘要写的是 `-webkit-line-clamp: 3`，但 `-webkit-box` 作为 **flex 子项会被块化成
+`flow-root`**，此时 line-clamp 只负责加省略号、**不限制高度**，于是第 4 行整行、第 5 行半截
+都会露出来（就是「卡片最后一行被切一半」的根因）。所以摘要除了 clamp 还要显式给高度：
+
+```css
+.post-card__summary {
+  --lh-sum: 1.6;
+  flex: none;
+  height: calc(3 * var(--lh-sum) * 1em); /* 与 line-height 同源，改行高时一起改 */
+  line-height: var(--lh-sum);
+}
+```
+
+余量交给 `.post-card__meta` 的 `margin: auto 0 0`（元信息永远贴卡片底部）；
+卡片高度固定，所以内容上下界确定、不会溢出。窄屏只改 `--lh-sum` 与字号，行数不变。
+
 唯一例外是**胶囊**（底栏标签与选中胶囊）：两端本来就是完整圆弧，
 内容由「胶囊格」居中承载，不套用这条规则。
 

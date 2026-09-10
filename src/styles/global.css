@@ -700,13 +700,17 @@ a {
   color: var(--link);
 }
 
-/* 摘要固定为整数行：到第 3 行即省略，避免文字多了后最后一行被切一半 */
+/* 摘要固定为整数行：到第 3 行即省略，避免文字多了后最后一行被切一半。
+   注意 height 是必须的——-webkit-box 作为 flex 子项会被块化成 flow-root，
+   此时 line-clamp 只负责加省略号、**不限制高度**，不加 height 就会露出第 4 行和半截第 5 行。 */
 .post-card__summary {
-  flex: 1 1 auto;
-  margin: 0.4rem 0 0;
+  --lh-sum: 1.6;
+  flex: none;
+  margin: 0.4rem 0 0.75rem;
   color: var(--text-2);
   font-size: 0.9rem;
-  line-height: 1.6;
+  line-height: var(--lh-sum);
+  height: calc(3 * var(--lh-sum) * 1em);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -714,7 +718,7 @@ a {
 }
 
 .post-card__meta {
-  margin: 0.75rem 0 0;
+  margin: auto 0 0; /* 贴到卡片底部（上方的 auto 吃掉摘要与标题之间的余量） */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1365,7 +1369,7 @@ a {
   }
 
   .post-card__link {
-    padding: 1rem 1.2rem 1.1rem;
+    padding: var(--r-lg); /* 窄屏同样「边距 = 圆角半径」，不再单独收窄 */
   }
 
   .post-card {
@@ -1376,19 +1380,16 @@ a {
     font-size: 1rem;
   }
 
+  /* 摘要仍是整数 3 行，行高与字号按窄屏收一档（原稿里重复了一段 0.97rem 覆盖，已合并） */
   .post-card__summary {
-    margin: 0.38rem 0 0;
+    --lh-sum: 1.5;
+    margin: 0.38rem 0 0.66rem;
     font-size: 0.85rem;
-    line-height: 1.5;
   }
 
   .post-card__meta {
-    margin: 0.66rem 0 0;
+    margin: auto 0 0;
     font-size: 0.72rem;
-  }
-
-  .post-card__summary {
-    font-size: 0.97rem;
   }
 
   .masthead {

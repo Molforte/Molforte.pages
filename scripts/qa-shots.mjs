@@ -10,6 +10,8 @@ mkdirSync(OUT, { recursive: true })
 const cases = [
   { name: 'home-desktop', url: `${BASE}/`, vw: 1280, vh: 900 },
   { name: 'home-mobile', url: `${BASE}/`, vw: 390, vh: 844 },
+  { name: 'archive-desktop', url: `${BASE}/archive`, vw: 1280, vh: 900 },
+  { name: 'archive-mobile', url: `${BASE}/archive`, vw: 390, vh: 844 },
   { name: 'post-tech', url: `${BASE}/post/how-this-site-is-built`, vw: 1280, vh: 900 },
   { name: 'post-essay', url: `${BASE}/post/why-no-topbar`, vw: 1280, vh: 900 },
   { name: 'fallback-404', url: `${BASE}/post/does-not-exist`, vw: 1280, vh: 900 },
