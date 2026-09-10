@@ -17,11 +17,12 @@ const logs = []
 page.on('console', (m) => logs.push(`${m.type()}: ${m.text()}`))
 page.on('pageerror', (e) => logs.push(`pageerror: ${e.message}`))
 
+// 默认 domcontentloaded：load 事件会被 woff2 下载拖住（线上尤其明显）
 await page.goto(`${BASE}/post/${SLUG}`, {
-  waitUntil: process.env.QA_WAIT || 'load',
-  timeout: 60000,
+  waitUntil: process.env.QA_WAIT || 'domcontentloaded',
+  timeout: 90000,
 })
-await page.waitForTimeout(3000)
+await page.waitForTimeout(4000)
 
 const info = await page.evaluate(() => {
   const blocks = [...document.querySelectorAll('.post-body pre code')]
