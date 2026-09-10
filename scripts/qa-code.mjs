@@ -5,7 +5,7 @@ const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 import { chromium } from 'playwright-core'
 
 const BASE = process.env.QA_BASE || 'http://127.0.0.1:4173/Molforte.pages'
-const SLUG = process.env.QA_SLUG || 'how-this-site-is-built'
+const PATH = process.env.QA_PATH || '/notes/iap-board/0a-准备'
 
 const browser = await chromium.launch({
   executablePath: EDGE,
@@ -18,7 +18,7 @@ page.on('console', (m) => logs.push(`${m.type()}: ${m.text()}`))
 page.on('pageerror', (e) => logs.push(`pageerror: ${e.message}`))
 
 // 默认 domcontentloaded：load 事件会被 woff2 下载拖住（线上尤其明显）
-await page.goto(`${BASE}/post/${SLUG}`, {
+await page.goto(`${BASE}${PATH}`, {
   waitUntil: process.env.QA_WAIT || 'domcontentloaded',
   timeout: 90000,
 })

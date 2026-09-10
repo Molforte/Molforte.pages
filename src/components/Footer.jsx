@@ -1,4 +1,4 @@
-import { posts, countChars } from '../lib/content.js'
+import { countAllChars } from '../lib/content.js'
 import { SITE } from '../site.js'
 import { useTheme } from '../theme.js'
 import Reveal from './Reveal.jsx'
@@ -56,8 +56,8 @@ export default function Footer() {
   const since = SITE.since
   const { theme, toggle } = useTheme()
 
-  // 字数只算正文：围栏代码块（``` / ~~~，语言任意）与行内代码都不计入
-  const total = posts.reduce((sum, p) => sum + countChars(p.content), 0)
+  // 字数 = 文章 + 笔记，口径统一：只算正文（围栏代码块与行内代码不计）
+  const total = countAllChars()
   const work = nearestWork(total)
   const stat = work
     ? `摩尔已经写完了 ${total.toLocaleString('zh-CN')} 字，好像写完了一本 ${work.author}${work.name} 了啊。`

@@ -69,7 +69,7 @@ async function audit(name, url, vw, vh, withHover = false) {
     const opened = (await panel.count()) > 0
     let found = null
     if (opened) {
-      await page.locator('.search-panel__input').fill('顶栏')
+      await page.locator('.search-panel__input').fill('数码管')
       await page.waitForTimeout(150)
       found = await page.locator('.search-panel__item').count()
       await page.keyboard.press('Escape')
@@ -85,6 +85,6 @@ async function audit(name, url, vw, vh, withHover = false) {
 await audit('home-desktop', `${BASE}/`, 1366, 900, true)
 await audit('home-mobile', `${BASE}/`, 390, 844)
 await audit('archive', `${BASE}/archive`, 1366, 900)
-await audit('post', `${BASE}/post/how-this-site-is-built`, 1366, 900)
+await audit('note', `${BASE}/notes/iap-board/16-DS18B20温度传感器`, 1366, 900)
 await browser.close()
 console.log('audit done')

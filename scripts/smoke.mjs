@@ -8,21 +8,21 @@ p.on('pageerror', (e) => errs.push(String(e)))
 
 await p.goto(BASE + '/', { waitUntil: 'networkidle' })
 const home = await p.evaluate(() => ({
-  cards: document.querySelectorAll('.post-card').length,
+  cards: document.querySelectorAll('.column-card').length,
   tert: getComputedStyle(document.documentElement).getPropertyValue('--text-3').trim(),
   hOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
 }))
 
-await p.goto(BASE + '/post/how-this-site-is-built', { waitUntil: 'networkidle' })
+await p.goto(BASE + '/notes/iap-board/0a-准备', { waitUntil: 'networkidle' })
 const post = await p.evaluate(() => ({
-  title: document.querySelector('.post__title')?.textContent,
+  title: document.querySelector('.note__title')?.textContent,
   extLinks: document.querySelectorAll('.post-body a[target="_blank"]').length,
 }))
 
 await p.goto(BASE + '/archive', { waitUntil: 'networkidle' })
 const arch = await p.evaluate(() => ({
   hero: !!document.querySelector('.archive-hero'),
-  groupCards: document.querySelectorAll('.archive-group-card').length,
+  columnCards: document.querySelectorAll('.column-card').length,
 }))
 
 await p.goto(BASE + '/about', { waitUntil: 'networkidle' })

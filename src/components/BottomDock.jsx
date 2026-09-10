@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { posts, formatDate } from '../lib/content.js'
+import { posts, searchNotes, formatDate } from '../lib/content.js'
 import GlassSurface from './GlassSurface.jsx'
 
 const ICON = {
@@ -103,9 +103,28 @@ export default function BottomDock() {
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
     if (!key) return []
-    return posts
-      .filter((p) => `${p.title} ${p.tags.join(' ')} ${p.slug}`.toLowerCase().includes(key))
-      .slice(0, 12)
+    const hit = (hay) => hay.toLowerCase().includes(key)
+    return [
+      // 笔记（册内）：标题 / 标签 / 册名都可搜
+      ...searchNotes
+        .filter((n) => hit(`${n.title} ${n.tags.join(' ')} ${n.slug} ${n.volumeTitle}`))
+        .map((n) => ({
+          key: `${n.volume}/${n.slug}`,
+          to: `/notes/${n.volume}/${n.slug}`,
+          date: n.date,
+          title: n.title,
+          where: n.volumeTitle,
+        })),
+      ...posts
+        .filter((p) => hit(`${p.title} ${p.tags.join(' ')} ${p.slug}`))
+        .map((p) => ({
+          key: p.slug,
+          to: `/post/${p.slug}`,
+          date: p.date,
+          title: p.title,
+          where: '',
+        })),
+    ].slice(0, 12)
   }, [q])
 
   const close = useCallback(() => {
@@ -263,15 +282,16 @@ export default function BottomDock() {
               <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
             ) : (
               <ul className="search-panel__list">
-                {results.map((post, index) => (
+                {results.map((item, index) => (
                   <li
                     className="search-panel__item"
-                    key={post.slug}
+                    key={item.key}
                     style={{ '--i': Math.min(index, 8) }}
                   >
-                    <Link to={`/post/${post.slug}`} onClick={close}>
-                      <time dateTime={post.date}>{formatDate(post.date)}</time>
-                      <span>{post.title}</span>
+                    <Link to={item.to} onClick={close}>
+                      <time dateTime={item.date}>{formatDate(item.date)}</time>
+                      <span>{item.title}</span>
+                      {item.where && <span className="search-panel__where">{item.where}</span>}
                     </Link>
                   </li>
                 ))}

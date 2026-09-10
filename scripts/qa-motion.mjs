@@ -18,7 +18,7 @@ await page.waitForTimeout(900)
 
 const home = await page.evaluate(() => {
   const cs = (el, p) => (el ? getComputedStyle(el)[p] : null)
-  const cards = [...document.querySelectorAll('.post-card')]
+  const cards = [...document.querySelectorAll('.column-card')]
   return {
     pageEnter: cs(document.querySelector('.page-enter'), 'animationName'),
     cardAnim: cs(cards[0], 'animationName'),
@@ -42,16 +42,16 @@ const footerAfterScroll = await page.evaluate(() => {
 })
 
 await page.evaluate(() => window.scrollTo(0, 0))
-await page.locator('.post-card').first().hover()
+await page.locator('.column-card').first().hover()
 await page.waitForTimeout(300)
 const hover = await page.evaluate(() => {
-  const el = document.querySelector('.post-card:hover')
+  const el = document.querySelector('.column-card:hover')
   return { transform: el ? getComputedStyle(el).transform : null }
 })
 
 await page.click('.search-island')
 await page.waitForTimeout(120)
-await page.fill('.search-panel__input', '顶栏')
+await page.fill('.search-panel__input', '数码管')
 await page.waitForTimeout(160)
 const search = await page.evaluate(() => ({
   panelAnim: getComputedStyle(document.querySelector('.search-panel')).animationName,
@@ -93,7 +93,7 @@ const arch = await browser.newPage({ viewport: { width: 1366, height: 900 } })
 await arch.goto(BASE + '/archive', { waitUntil: 'networkidle' })
 await arch.waitForTimeout(900)
 const archive = await arch.evaluate(() => {
-  const card = document.querySelector('.archive-group-card')
+  const card = document.querySelector('.column-card')
   return {
     isReveal: card?.classList.contains('reveal'),
     visible: card?.classList.contains('is-visible'),
@@ -110,8 +110,8 @@ await rm.waitForTimeout(500)
 const reduce = await rm.evaluate(() => {
   const cs = (el, p) => (el ? getComputedStyle(el)[p] : null)
   return {
-    cardOpacity: cs(document.querySelector('.post-card'), 'opacity'),
-    cardAnimDuration: cs(document.querySelector('.post-card'), 'animationDuration'),
+    cardOpacity: cs(document.querySelector('.column-card'), 'opacity'),
+    cardAnimDuration: cs(document.querySelector('.column-card'), 'animationDuration'),
     footerOpacity: cs(document.querySelector('.site-footer'), 'opacity'),
     footerTranslate: cs(document.querySelector('.site-footer'), 'translate'),
   }

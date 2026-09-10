@@ -19,7 +19,7 @@ page.on('response', (r) => {
     fontResponses.push(`${r.status()} ${r.url().split('/').pop()}`)
 })
 
-await page.goto(`${BASE}/post/how-this-site-is-built`, {
+await page.goto(`${BASE}/notes/iap-board/16-DS18B20温度传感器`, {
   waitUntil: process.env.QA_WAIT || 'networkidle',
   timeout: 60000,
 })

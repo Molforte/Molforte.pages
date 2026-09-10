@@ -587,6 +587,15 @@ a {
   font-weight: 500;
 }
 
+/* 搜索结果来自哪一册 */
+.search-panel__where {
+  flex: none;
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
 .search-panel__hint {
   margin: 0;
   padding: calc(var(--r-xl) * 0.5) var(--r-xl);

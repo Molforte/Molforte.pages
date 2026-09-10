@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { copyFileSync, existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseFrontMatter } from './src/lib/frontmatter.js'
+import { countChars } from './src/lib/text.js'
 
 const NOTES_DIR = 'content/notes'
 
@@ -39,12 +40,18 @@ function notesIndex() {
       const volDir = join(dir, slug)
       const notes = []
       let intro = null
+      let indexChars = 0
       for (const f of readdirSync(volDir)) {
         if (!f.endsWith('.md')) continue
         const raw = readFileSync(join(volDir, f), 'utf8')
         const { data, content } = parseFrontMatter(raw)
         if (f === 'index.md') {
-          intro = { title: data.title || slug, series: data.series || '', project: data.project || '' }
+          intro = {
+            title: data.title || slug,
+            series: data.series || '',
+            project: data.project || '',
+          }
+          indexChars = countChars(content)
           continue
         }
         if (data.draft === true) continue
@@ -55,6 +62,8 @@ function notesIndex() {
           date: data.date ? String(data.date).slice(0, 10) : '',
           tags: Array.isArray(data.tags) ? data.tags : [],
           summary: data.summary || excerpt(content),
+          // 字数只算正文（围栏代码块不计），构建期算好，正文不进包
+          chars: countChars(content),
         })
       }
       const num = (o) => {
@@ -71,8 +80,13 @@ function notesIndex() {
         title: intro?.title || slug,
         series: intro?.series || '',
         project: intro?.project || '',
-        updated: notes.map((n) => n.date).sort().at(-1) || '',
+        updated:
+          notes
+            .map((n) => n.date)
+            .sort()
+            .at(-1) || '',
         notes,
+        chars: indexChars + notes.reduce((n, x) => n + x.chars, 0),
       })
     }
     // 最近更新的栏目排前面
@@ -83,9 +97,7 @@ function notesIndex() {
     name: 'notes-index',
     resolveId: (id) => (id === virtualId ? resolvedId : null),
     load: (id) =>
-      id === resolvedId
-        ? `export const volumeIndex = ${JSON.stringify(build(), null, 2)}\n`
-        : null,
+      id === resolvedId ? `export const volumeIndex = ${JSON.stringify(build(), null, 2)}\n` : null,
     // 内容目录变化 → 让虚拟模块失效，dev 下立刻反映
     handleHotUpdate({ file, server }) {
       if (!file.includes(NOTES_DIR.replace('/', '\\')) && !file.includes(NOTES_DIR)) return

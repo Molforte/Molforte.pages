@@ -15,8 +15,7 @@ const cases = [
   { name: 'volume-desktop', url: `${BASE}/notes/iap-board`, vw: 1280, vh: 2200 },
   { name: 'volume-mobile', url: `${BASE}/notes/iap-board`, vw: 390, vh: 1600 },
   { name: 'note-desktop', url: `${BASE}/notes/iap-board/16-DS18B20温度传感器`, vw: 1280, vh: 2200 },
-  { name: 'post-tech', url: `${BASE}/post/how-this-site-is-built`, vw: 1280, vh: 900 },
-  { name: 'post-essay', url: `${BASE}/post/why-no-topbar`, vw: 1280, vh: 900 },
+  { name: 'note-mobile', url: `${BASE}/notes/iap-board/0a-准备`, vw: 390, vh: 1600 },
   { name: 'fallback-404', url: `${BASE}/post/does-not-exist`, vw: 1280, vh: 900 },
 ]
 

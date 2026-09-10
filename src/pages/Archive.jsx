@@ -5,7 +5,7 @@ import {
   formatDate,
   groupByProject,
   readingMinutes,
-  countChars,
+  countAllChars,
   volumes,
   getVolumeIntro,
 } from '../lib/content.js'
@@ -38,8 +38,8 @@ export default function Archive() {
 
   const groups = groupByProject()
   const noteCount = volumes.reduce((sum, v) => sum + v.notes.length, 0)
-  // 字数只算正文：围栏代码块（``` / ~~~，语言任意）与行内代码都不计入
-  const totalChars = posts.reduce((sum, p) => sum + countChars(p.content), 0)
+  // 字数 = 文章 + 笔记，口径统一：只算正文（围栏代码块与行内代码不计）
+  const totalChars = countAllChars()
 
   return (
     <div className="archive">
@@ -55,10 +55,12 @@ export default function Archive() {
             <dt>笔记</dt>
             <dd>{noteCount}</dd>
           </div>
-          <div className="archive-stat">
-            <dt>文章</dt>
-            <dd>{posts.length}</dd>
-          </div>
+          {posts.length > 0 && (
+            <div className="archive-stat">
+              <dt>文章</dt>
+              <dd>{posts.length}</dd>
+            </div>
+          )}
           <div className="archive-stat">
             <dt>字数</dt>
             <dd>{totalChars.toLocaleString('zh-CN')}</dd>

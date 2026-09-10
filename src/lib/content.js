@@ -139,6 +139,21 @@ export function getVolume(slug) {
   return volumes.find((v) => v.slug === slug) || null
 }
 
+/** 所有笔记的正文汉字数合计（构建期算好，正文不用加载） */
+export function countNoteChars() {
+  return volumes.reduce((sum, v) => sum + (v.chars || 0), 0)
+}
+
+/** 全站字数（文章 + 笔记），口径统一：只算正文，围栏代码块不计 */
+export function countAllChars() {
+  return posts.reduce((sum, p) => sum + countChars(p.content), 0) + countNoteChars()
+}
+
+/** 搜索用的扁平笔记索引（构建期清单，正文不加载） */
+export const searchNotes = volumes.flatMap((v) =>
+  v.notes.map((n) => ({ ...n, volume: v.slug, volumeTitle: v.title })),
+)
+
 /** 册首页正文（README/@ 索引页转换而来） */
 export function getVolumeIntro(slug) {
   for (const [path, raw] of Object.entries(volumePages)) {

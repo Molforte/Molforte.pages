@@ -23,7 +23,7 @@ out.home = await p.evaluate(() => {
   return {
     title: document.title,
     h1: document.querySelector('.masthead__title')?.textContent?.trim(),
-    cards: document.querySelectorAll('.post-card').length,
+    cards: document.querySelectorAll('.column-card').length,
     dock: !!document.querySelector('.dock'),
     glassSurfaces: document.querySelectorAll('.dock .glass-surface').length,
     glassBackdrop: glass ? getComputedStyle(glass).backdropFilter.includes('glass-filter') : false,
@@ -37,12 +37,12 @@ out.homeErrors = errs
 const p2 = await browser.newPage({ viewport: { width: 1366, height: 900 } })
 const errs2 = []
 p2.on('pageerror', (e) => errs2.push(String(e).slice(0, 140)))
-const resp = await p2.goto(`${SITE}/post/how-this-site-is-built`, { waitUntil: 'networkidle' })
+const resp = await p2.goto(`${SITE}/notes/iap-board/0a-准备`, { waitUntil: 'networkidle' })
 await p2.waitForTimeout(400)
 out.deepLink = {
   httpStatus: resp?.status(),
   ...(await p2.evaluate(() => ({
-    postTitle: document.querySelector('.post__title')?.textContent?.trim(),
+    postTitle: document.querySelector('.note__title')?.textContent?.trim(),
     codeBlocks: document.querySelectorAll('.post-body pre').length,
     pager: !!document.querySelector('.post__pager'),
   }))),
@@ -52,7 +52,7 @@ out.deepLinkErrors = errs2
 // —— 搜索浮层 ——
 await p.click('.search-island')
 await p.waitForTimeout(300)
-await p.fill('.search-panel__input', '顶栏')
+await p.fill('.search-panel__input', '数码管')
 await p.waitForTimeout(250)
 out.search = await p.evaluate(() => ({
   open: !!document.querySelector('.search-panel'),
