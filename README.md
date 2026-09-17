@@ -1,10 +1,22 @@
 # 札记 · Molforte
 
 个人博客，部署在 GitHub Pages。**没有顶栏**——页面是居中的内容流。
-底部功能区是两个**分离的悬浮岛**：主岛是四个图标（主页 / 归档 / 友链 / 关于，
-文字在悬浮/聚焦时才浮现，选中格加深约 1/4），旁边是独立的圆形搜索副岛，
-像横着的“感叹号”；搜索会打开玻璃浮层按标题/标签检索文章。
+底部功能区是两个**分离的悬浮岛**：主岛是一排圆形图标芯片
+（Home / Archive / Links / About；芯片样式取自 [Uiverse](https://uiverse.io/) 的
+`navigation-card`——50px 圆片、极浅底色、悬浮变深），
+**当前那枚会撑宽成一颗胶囊、把栏名浮出来**（这层来自我们早先那版 Apple `.dotnav`
+的「点拉长成线」）。旁边是独立的圆形搜索副岛，搜索会打开玻璃浮层按标题/标签检索文章。
+两个岛的外壳默认是**实心白卡片**（只留一层几乎看不见的底影），
+另有发丝描边与液态玻璃两版，见「布局与定制」。
 正文末尾另有「较新的文章 / 较旧的文章」。
+首页是一整屏的首屏（hero）：欢迎语、格言，下面两个按钮——主按钮是**描边式**
+（页面底色 + 3px 主蓝描边 + 同色文字，悬浮时整块填成主蓝、文字翻成底色、字号抬 +25%，
+圆角仍是全站的 `--r-pill`），副按钮是一排**圆形联系方式图标**
+（Bilibili / GitHub / Email，指针停在某一枚上时它浮出名字气泡、其余几枚模糊缩小）；
+文章与项目都落在折线以下。欢迎语里的 “Molforte” 会朝鼠标方向偏出去，
+偏走的地方露出原位的蓝色残影；**整个主页**（不只是首屏）底上还铺了一层点阵：
+**横向满幅到屏幕两边，纵向跟着页面一起滚**，指针快速掠过时点会被「顶开」，
+别的页面没有这层。
 
 风格取向是克制的苹果式简洁：白底、系统无衬线、发丝线分隔、大量留白；
 大屏内容栏约取整页 60% 宽。全部视觉 token 集中在一份 CSS 里，改起来很容易。
@@ -47,7 +59,10 @@ src/
   lib/content.js        # 读 content/、解析 frontmatter、排序、按项目分组
   lib/markdown.js       # Markdown -> HTML（站外链接新开页 + {{IMG}}/{{FILE}}/{{NOTE}} 占位符）
   lib/highlight.js      # 按需注册的语言
-  components/           # BottomDock（GlassSurface 玻璃岛 + 搜索）/ MarkdownBody / BlendCursor / Footer
+  components/           # BottomDock（圆形图标芯片 + 搜索）/ SocialLinks（联系方式那一排）
+                        # MagneticWord（跟着鼠标的词）/ DotField（首屏点阵）
+                        # ShinyText（主按钮文案的高光）/ MarkdownBody / BlendCursor（差值光标）
+                        # Reveal（滚动入场）/ Footer
   pages/                # Home / Archive（栏目制）/ Volume / Note / Post / StaticPage / NotFound
   styles/global.css     # 全部样式与设计 token
 index.html
@@ -191,8 +206,14 @@ frontmatter 字段说明（约定单行书写）：
 
 ## 站点配置
 
-`src/site.js` 里改：主标题、作者、导语、页脚文案。改标题后记得同步
-`index.html` 的 `<title>` 与 `public/favicon.svg` 里的字。
+`src/site.js` 里改：主标题、作者、页脚文案，以及**首页首屏**那几行文案——
+`welcome`（欢迎语，首屏大字，写数组就是一行一句、断行你自己定；写字符串则自动折行）、
+`motto`（格言）、`magnetic`（会朝鼠标偏出去的那个词，留空即无此效果）、
+`start`（主按钮：默认**往下滑一屏**，也就是「主页第二页」，不跳路由；
+给它补一个 `to: '/archive'` 就变回跳转）、
+`social`（副按钮那排联系方式：`key` 决定图标，可用 `bilibili` / `github` / `email`，
+`href` 留空字符串那一项就自动不显示）。
+改标题后记得同步 `index.html` 的 `<title>` 与 `public/favicon.svg` 里的字。
 
 视觉 token（底色、文字、分隔线、链接蓝）集中在 `src/styles/global.css` 顶部
 `:root`，改配色只动那一处。
@@ -256,10 +277,24 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 - 小屏（<900px）：内容放宽到接近全宽（`--measure-phone: 46rem` 兜底）；
 - **深色模式**：默认跟随系统（`prefers-color-scheme`），页脚月亮/太阳按钮可手动切换并记忆（localStorage）；首屏前内联脚本已应用主题，无闪烁；
 - 想调宽度：改 `src/styles/global.css` 顶部的 `--measure` 即可；
-- 底栏玻璃参数：在 `src/components/BottomDock.jsx` 里传给 `<GlassSurface />`
-  （`borderRadius` / `backgroundOpacity` / `saturation` / `blur` / `distortionScale` 等，
-  完整 props 见组件头部注释与 React Bits 文档）；布局与气泡样式在 `global.css` 的
-  `dock` / `dock-glass` / `apptabbar` / `search-island` / `search-backdrop` 规则里；
+- **首页首屏**：`.home-hero` 高一整屏（`100dvh`），里面只有三块内容
+  `.home-hero__title`（欢迎语）/ `__motto`（格言）/ `__actions`（两个按钮），
+  字号都走 `clamp()`，不会掉到折线以下；给底栏岛让位的高度是 `--dock-clearance`，
+  `.site-frame` 的内边距与首屏高度共用它，改底栏高度时只动这一处；
+- **底栏**：一条圆形图标芯片的主岛 + 一个圆形搜索副岛。芯片尺寸、项间距、
+  容器内边距都在 `global.css` 的 `.dotnav` 一族里（照着 Uiverse `navigation-card`
+  那套：50px 圆片、30px 间距，内边距收紧到 7px 11px —— 原样式是 15px 20px）；
+  芯片底色是 `--tab-bg` / `--tab-bg-hover` / `--tab-bg-current`（深浅两套），
+  当前那枚宽度 `50px → 7rem`。
+  外壳有三版，做在 `dock--hairline` / `dock--solid` / `dock--glass` 三个类上，
+  默认值在 `BottomDock.jsx` 顶部的 `DOCK_SURFACE_DEFAULT`（现在是 `solid`），
+  运行时可以 `?dock=solid|hairline|glass` 或按 `Shift+D` 循环着切。
+  只有 `glass` 那版会挂载 React Bits 的 `<GlassSurface />`（它的宽度、圆角、
+  玻璃参数都在 `BottomDock.jsx` 里传：`borderRadius` / `backgroundOpacity` /
+  `saturation` / `distortionScale` 等，完整 props 见组件头部注释与 React Bits 文档）；
+  另外两版就是一个普通盒子，省掉 SVG 滤镜的开销，也没有它在边缘留下的那圈淡蓝纹。
+  搜索浮层样式在 `search-island` / `search-backdrop` 规则里；
+  两个岛离窗口底边 26px（窄屏 20px，`.dock` 的 `bottom`）；
 - 深浅色都由 `:root` / `:root[data-theme='dark']` 里的 token 控制，换色只改这两处。
 
 ## 设计规则（全局，改样式时照做）
@@ -273,7 +308,7 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 | `--r-md`   | 16px  | 列表行、图片、代码块            |
 | `--r-lg`   | 20px  | 卡片、归档 hero、归档分组卡     |
 | `--r-xl`   | 28px  | 搜索浮层                        |
-| `--r-pill` | 999px | 胶囊（底栏标签/选中胶囊）、圆形 |
+| `--r-pill` | 999px | 胶囊（底栏的线/文字格）、圆形     |
 
 底栏两个岛的半径由 `GlassSurface` 以数值 props 传：主岛 **34px**（= 岛高一半，胶囊）、
 搜索岛 **999px**（正圆）。改 `--dock-h` 时记得同步主岛半径（`BottomDock.jsx`）。
@@ -368,13 +403,32 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 - 没有目录、RSS——按“功能贴近上下文、不为不存在而存在”的原则，等真正需要再加
   （它们会加在正文/侧栏附近，而不是重新长出一条顶栏）。
 - 手机上只是同一份内容的自适应，没有单独的移动端导航。
+- **底栏是开着的**（`src/App.jsx` 顶部 `SHOW_BOTTOM_DOCK = true`）。改 `false` 时
+  组件、玻璃岛、搜索浮层、样式都原样保留，只是不挂载；`global.css` 的
+  `.site-frame--no-dock` 会顺手把给它让位的那块高度（6rem）收掉，
+  否则页面底部会留一条空带。
 
 ## 效果来源
 
-站上两个交互效果都不是自创的，来源都在这里说清楚：
+站上五个交互效果，来源都在这里说清楚：
 
 1. **底栏玻璃** —— 使用 [React Bits](https://reactbits.dev/) 的 `GlassSurface` 组件
    （JavaScript + CSS 变体），源码在 `src/components/GlassSurface.jsx` / `.css`。
+   注意现在只有底栏外壳切到 `?dock=glass` 那一版时才会挂载它；默认是发丝描边，
+   不走玻璃。
+   底栏里那排**圆形图标芯片**的样式取自 [Uiverse](https://uiverse.io/) 的 `navigation-card`：
+   50px 圆片、底色 `--tab-bg`（浅 #fcfcfc）、悬浮变深 `--tab-bg-hover`（#dfdfdf）、
+   项间距 30px，圆角仍用全站的 `--r-pill`；容器内边距比原样式收紧了一档
+   （原 15px 20px → 现在 7px 11px），让外框到芯片更近。
+   在它之上保留了本站早先那版 [Apple `.dotnav`](https://www.apple.com/os/ipados/)
+   的做法：**当前那一枚撑宽成胶囊**（50px → 7rem）并把栏名浮出来；
+   但当前态**不填黑块**，只用再深一档的浅灰（`--tab-bg-current`）——那份参考的
+   干净感正来自「所有 tab 都是同一个浅色」，填黑会一下把整条压重。
+   因为不再有深底白字，也就没有「白字形显胖」的问题，四个图标同尺寸即可。
+   两处按本站调整：命中的语义没照搬 Apple 的 `role="tablist"`——底栏是页面导航，
+   仍用 `<nav>` + 链接；深浅两套芯片底色各给一份（`--tab-bg*`）。
+   图标的**视觉重量**也调过：链环那个（Links）的两条路径在 24 格 viewBox 里铺得比
+   别的图标满，同尺寸看着偏大，所以标了 `small`、收一档（`.dotnav__icon--sm`）。
    相对上游只有两处等价改写（把 SVG 能力探测提为模块级函数 + 惰性初始 state），
    原因是通过本项目 ESLint；改动已在文件头注明。
    底栏的两个岛（主岛、搜索圆岛）都由它包裹，玻璃参数在 `BottomDock.jsx` 里传：
@@ -386,6 +440,53 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
    常态半径 16px，进入 `[data-cursor="blend"]` 放大到 32px，离开则缩回淡出；
    触屏与 `prefers-reduced-motion` 下不启用。实现见 `src/components/BlendCursor.jsx`
    （按上游公开页面里的行为与数值重写，未复制其代码）。
+3. **首屏“Molforte”跟着鼠标的效果** —— 没有对应的库或上游实现，是自己写的：
+   指针在首屏里移动时，那个词朝指针方向平移，
+   `位移 = 指向指针的单位向量 × 偏移上限 × min(1, 距离 / 参考半径)`；
+   偏移上限按字号折算（`MAX_EM = 0.22`，86px 标题下约 19px），
+   参考半径 `4.2em`，每帧插值所以是“被牵着走”而不是硬贴在指针上。
+   原位那层**蓝色残影**是同一个词用 `::before` + `content: attr(data-ghost)` 画的、
+   **不跟着动**，所以偏到哪里，原本被盖住的地方就露出多少蓝色；浓度跟着位移量走
+   （没偏时为 0，免得字形抗锯齿边缘渗出一圈淡蓝，也免得静止时有任何变化）。
+   实现见 `src/components/MagneticWord.jsx`。`src/site.js` 的 `magnetic` 决定是哪个词，
+   留空即整段效果消失。
+4. **主按钮文案上扫过的一束光** —— 使用 [React Bits](https://reactbits.dev/text-animations/shiny-text)
+   的 `ShinyText`。上游的 JS 变体用 motion/react 逐帧算 `background-position`，
+   本站没有（也不打算）引 motion，所以换成一条等价的 CSS keyframes 动画：
+   120deg、`background-size: 200%`、位移 `150% → -50%`、周期 2.6s 都照上游数值。
+   一处按本站情况适配：**高光用更深的蓝而不是白色**。主按钮现在是白底蓝字
+   （描边式，见 `.hero-btn--primary`），白色高光扫过等于把字擦掉（字与底同色）；
+   换成深一档的蓝之后，扫过时是蓝色变深，字全程读得见（#0071e3 对白底 4.70:1 达 AA）。
+   见 `src/components/ShinyText.jsx` 与 `global.css` 的 `.shiny-text`。
+5. **首屏那层点阵** —— 使用 [React Bits](https://reactbits.dev/) 的 `DotField`，
+   源码在 `src/components/DotField.jsx` / `.css`。相对上游的改动只有一处，是性能上的：
+   上游每帧无条件重画整块点阵（rAF 永远在跑），页面闲置时也一直 60fps 重绘；
+   这里加了一条短路口——上一帧还有点没归位、或指针仍在参与（`eng > 0`）才重画，
+   否则直接返回，画布保持原样。视觉与交互与上游一致。
+   颜色按本站调过：上游默认那套紫渐变 + 深色光晕是给深底用的，
+   这里换成中性灰（对角线由 0.4 淡到 0.18）。跟着指针的那圈**光晕关掉了**
+   （`glowRadius={0}` + `glowColor="transparent"`）：推挤时只该看到点被撞开，
+   不该额外糊一层蓝雾。深浅两个主题共用同一套灰（没有跟着主题切换，是有意的）。
+   动画方式定下来是 `push`（`Home.jsx` 顶部的 `DOTS_MODE`）：指针快速划过时把点撞开、
+   再自己弹回——这正是上游 `bulgeOnly: false` 的那一态，所以没有偏离上游。
+   同族另外五种留在组件的 `mode` prop 里（`bulge` 顶开 / `attract` 吸向指针 /
+   `vortex` 绕指针转 / `ripple` 按距离做行波 / `magnify` 近处点变大），
+   还有上游的 `wave` / `sparkle` 两态；想换只改 `DOTS_MODE` 一个词。
+   注意开了 `wave` / `sparkle` 之后点阵一直在动，上面那条「静止跳过重绘」就不生效了
+   （组件里已按这两个 prop 做了判断）。
+6. **首屏那排联系方式** —— 样式来源 [Uiverse.io by GigioBagigi0](https://uiverse.io/)
+   的 `.card` / `.social-icons`：一排等距圆形图标，指针停在某一枚上时
+   **它浮出名字气泡（带小三角）、其余几枚同时模糊并缩小**，视线被拉到指针那一枚。
+   本站改了三处：气泡颜色换成站点的浮层配色（来样是固定蓝/红），
+   模糊只在真的指向某一枚时发生（`.social-card:has(.social-card__item:hover)`——
+   来样的 `:not(:hover)` 在指针落在卡片空白处时会把整排都糊掉），
+   尺寸沿用主按钮那套（等宽等高、同样 `min-width: min(10rem, 40vw)`），两个并排才齐平。
+   图标是内联 SVG（B 站那枚是描边画的圆角电视 + 天线 + 两只眼睛，和站内其他图标一套画法），
+   各自用品牌色：B 站粉、GitHub 墨黑、邮箱主蓝。
+   颜色按 UI 那条 3:1 卡过（芯片底 ≈ `#f4f4f4`）：B 站官方那支粉 `#FB7299` 只有 2.40:1，
+   所以浅色下压深一档用 `#E8558A`（3.13:1，肉眼几乎还是那支粉）；
+   深色底上官方粉有 5.44:1，直接用官方值，GitHub 则换成浅灰（黑的在深底上会消失）。
+   内容在 `src/site.js` 的 `SITE.social`。
 
 ## 免责网络备注
 
