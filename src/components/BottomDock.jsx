@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { posts, searchNotes, formatDate } from '../lib/content.js'
 import GlassSurface from './GlassSurface.jsx'
 
+// 导航图标：每个圆形芯片里放一个（芯片样式来自 Uiverse 的 navigation-card）
 const ICON = {
   home: (
     <>
@@ -18,7 +19,9 @@ const ICON = {
       <path d="M9.6 13.6h4.8" />
     </>
   ),
-  friends: (
+  // 链环：这对路径在 24 格 viewBox 里铺得比别的图标满（x 从 3 到 21），
+  // 同尺寸看着会偏大，所以标记成 small，渲染时收一档
+  links: (
     <>
       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
@@ -39,11 +42,13 @@ const ICON = {
   ),
 }
 
+// 栏名平时收在芯片里（宽度 0），当前那枚撑开时才浮出来；
+// 它同时也是这一项的无障碍名。small: true 的图标收一档（见 .dotnav__icon--sm）。
 const TABS = [
-  { to: '/', label: '主页', end: true, icon: ICON.home },
-  { to: '/archive', label: '归档', icon: ICON.archive },
-  { to: '/friends', label: '友链', icon: ICON.friends },
-  { to: '/about', label: '关于', icon: ICON.about },
+  { to: '/', label: 'Home', end: true, icon: ICON.home },
+  { to: '/archive', label: 'Archive', icon: ICON.archive },
+  { to: '/friends', label: 'Links', icon: ICON.links, small: true },
+  { to: '/about', label: 'About', icon: ICON.about },
 ]
 
 const ICON_PROPS = {
@@ -54,6 +59,14 @@ const ICON_PROPS = {
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
   'aria-hidden': 'true',
+}
+
+/** 当前路由是否属于这一栏；笔记的册页/笔记页都算「归档」。 */
+function isTabActive(tab, pathname) {
+  if (tab.to === '/archive') {
+    return pathname.startsWith('/archive') || pathname.startsWith('/notes/')
+  }
+  return tab.end ? pathname === tab.to : pathname.startsWith(tab.to)
 }
 
 // 玻璃参数（两个岛共用）。色散/RGB 分离由三个通道的额外位移决定，
@@ -67,6 +80,81 @@ const GLASS_TINT = {
   blueOffset: 10,
 }
 
+/* ＝临时＝ 底栏外壳的样式，做出来比着看：
+     glass    —— 原来的 React Bits 液态玻璃（白底上偏灰，边缘还有一点滤镜纹）
+     hairline —— 透明底 + 1px 发丝线
+     solid    —— 实心底 + 柔影
+   默认值就是下面那一行。运行时可以 ?dock=hairline|solid|glass，
+   或按 Shift+D 循环着切；定下来之后把默认值改掉、这段开关就可以删了。 */
+const DOCK_SURFACES = ['solid', 'hairline', 'glass']
+const DOCK_SURFACE_DEFAULT = 'solid'
+const DOCK_SURFACE_KEY = 'molforte-dock-surface'
+
+function readDockSurface() {
+  try {
+    const v = new URLSearchParams(window.location.search).get('dock')
+    if (v && DOCK_SURFACES.includes(v)) {
+      localStorage.setItem(DOCK_SURFACE_KEY, v)
+      return v
+    }
+    const stored = localStorage.getItem(DOCK_SURFACE_KEY)
+    if (stored && DOCK_SURFACES.includes(stored)) return stored
+  } catch {
+    /* 无痕模式读不到就用默认值 */
+  }
+  return DOCK_SURFACE_DEFAULT
+}
+
+function useDockSurface() {
+  const [surface, setSurface] = useState(readDockSurface)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return
+      if (String(e.key).toLowerCase() !== 'd') return
+      const t = e.target
+      if (
+        t instanceof Element &&
+        (t.closest('input, textarea, [contenteditable]') || t.isContentEditable)
+      )
+        return
+      e.preventDefault()
+      setSurface((prev) => {
+        const next = DOCK_SURFACES[(DOCK_SURFACES.indexOf(prev) + 1) % DOCK_SURFACES.length]
+        try {
+          localStorage.setItem(DOCK_SURFACE_KEY, next)
+        } catch {
+          /* ignore */
+        }
+        console.info(`[调试] 底栏外壳：${next}（Shift+D 循环，?dock=… 也行）`)
+        return next
+      })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+  return surface
+}
+
+/** 两个岛的外壳：玻璃那版交给 React Bits 的 <GlassSurface />，其余两版就是一个普通盒子
+    （省掉 SVG 滤镜的那点开销，也没有它在边缘留下的淡蓝纹）。 */
+function Island({ surface, shape, children }) {
+  const cls = `dock-island dock-island--${shape}`
+  if (surface === 'glass') {
+    return (
+      <GlassSurface
+        className={`${cls} dock-glass`}
+        width={shape === 'pill' ? 'min(72vw, 25rem)' : 'var(--dock-h)'}
+        height="var(--dock-h)"
+        borderRadius={shape === 'pill' ? 34 : 999}
+        {...GLASS_TINT}
+      >
+        {children}
+      </GlassSurface>
+    )
+  }
+  return <div className={cls}>{children}</div>
+}
+
 export default function BottomDock() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -74,31 +162,8 @@ export default function BottomDock() {
   const panelRef = useRef(null)
   const triggerRef = useRef(null)
 
-  // 选中胶囊：跟随当前路由滑动过去（动画做在玻璃内部，避免影响 backdrop-filter）
   const { pathname } = useLocation()
-  const tabsRef = useRef(null)
-  const [pill, setPill] = useState({ left: 0, width: 0 })
-  const [pillReady, setPillReady] = useState(false)
-
-  useEffect(() => {
-    const measure = () => {
-      const tabs = tabsRef.current
-      if (!tabs) return
-      const active = tabs.querySelector('.apptabbar__tab.is-active')
-      if (!active) {
-        setPill((p) => (p.width === 0 ? p : { ...p, width: 0 }))
-        return
-      }
-      setPill({ left: active.offsetLeft, width: active.offsetWidth })
-    }
-    measure()
-    const raf = requestAnimationFrame(() => setPillReady(true))
-    window.addEventListener('resize', measure)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', measure)
-    }
-  }, [pathname])
+  const surface = useDockSurface()
 
   const results = useMemo(() => {
     const key = q.trim().toLowerCase()
@@ -186,63 +251,40 @@ export default function BottomDock() {
 
   return (
     <>
-      <div className="dock">
-        {/* 主岛：玻璃来自 React Bits 的 <GlassSurface />；内部只有图标，文字悬浮浮现 */}
-        <GlassSurface
-          className="dock-glass dock-glass--island"
-          width="min(72vw, 54rem)"
-          height="var(--dock-h)"
-          borderRadius={34}
-          {...GLASS_TINT}
-        >
-          <nav className="apptabbar" aria-label="主导航">
-            <div className={`apptabbar__tabs${pillReady ? ' is-ready' : ''}`} ref={tabsRef}>
-              <span
-                className="apptabbar__pill"
-                aria-hidden="true"
-                style={{
-                  transform: `translateX(${pill.left}px)`,
-                  width: `${pill.width}px`,
-                  opacity: pill.width ? 1 : 0,
-                }}
-              />
-              {TABS.map((tab) => (
-                <NavLink
-                  key={tab.to}
-                  to={tab.to}
-                  end={tab.end}
-                  aria-label={tab.label}
-                  className={({ isActive }) =>
-                    // 笔记的册页/笔记页都属于「归档」这一栏
-                    `apptabbar__tab${
-                      isActive || (tab.to === '/archive' && pathname.startsWith('/notes/'))
-                        ? ' is-active'
-                        : ''
-                    }`
-                  }
-                >
-                  <span className="apptabbar__icon-wrap">
-                    <svg className="apptabbar__icon" {...ICON_PROPS}>
-                      {tab.icon}
-                    </svg>
-                  </span>
-                  <span className="apptabbar__label" aria-hidden="true">
-                    {tab.label}
-                  </span>
-                </NavLink>
-              ))}
-            </div>
+      <div className={`dock dock--${surface}`}>
+        {/* 主岛：一排圆形图标芯片（样式来自 Uiverse 的 navigation-card），
+            当前那枚撑宽成一颗胶囊、把栏名浮出来（这层行为来自我们的 dotnav 版）。
+            外壳样式由 dock--hairline / dock--solid / dock--glass 决定。 */}
+        <Island surface={surface} shape="pill">
+          <nav className="dotnav" aria-label="主导航">
+            <ul className="dotnav__items">
+              {TABS.map((tab) => {
+                const active = isTabActive(tab, pathname)
+                return (
+                  <li className="dotnav__item" key={tab.to}>
+                    <NavLink
+                      to={tab.to}
+                      end={tab.end}
+                      className={`dotnav__link${active ? ' is-current' : ''}`}
+                    >
+                      <svg
+                        className={`dotnav__icon${tab.small ? ' dotnav__icon--sm' : ''}`}
+                        {...ICON_PROPS}
+                      >
+                        {tab.icon}
+                      </svg>
+                      {/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才看得见 */}
+                      <span className="dotnav__label">{tab.label}</span>
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
           </nav>
-        </GlassSurface>
+        </Island>
 
-        {/* 搜索副岛：独立的圆形 GlassSurface */}
-        <GlassSurface
-          className="dock-glass dock-glass--circle"
-          width="var(--dock-h)"
-          height="var(--dock-h)"
-          borderRadius={999}
-          {...GLASS_TINT}
-        >
+        {/* 搜索副岛：独立的圆形外壳 */}
+        <Island surface={surface} shape="circle">
           <button
             type="button"
             className="search-island"
@@ -252,7 +294,7 @@ export default function BottomDock() {
           >
             <svg {...ICON_PROPS}>{ICON.search}</svg>
           </button>
-        </GlassSurface>
+        </Island>
       </div>
 
       {open && (

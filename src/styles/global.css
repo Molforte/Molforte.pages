@@ -64,6 +64,18 @@
   --chip-bg: rgba(29, 29, 31, 0.05);
   --row-hover-bg: rgba(29, 29, 31, 0.035);
   --hl-blue: #0066cc;
+  /* 底栏每颗圆形芯片的底色（Uiverse 那份 navigation-card 的 #fcfcfc / #dfdfdf）；
+     当前那枚再深一点（不是填黑块），靠这个 + 浮出的栏名做指示。 */
+  --tab-bg: #fcfcfc;
+  --tab-bg-hover: #dfdfdf;
+  --tab-bg-current: #e7e7e7;
+  /* 主按钮的蓝：苹果那种鲜艳蓝（也正是本站链接蓝 --link 的浅色值）。
+     代价写在按钮那条规则里：底色越亮，白字与「压暗的白」之间的空间越小，
+     ShinyText 的高光也就越难看见。 */
+  --cta-blue: #0071e3;
+  /* 首屏主按钮的投影：浅色下是淡淡的中性投影，深色下换成更深的底影 */
+  --btn-shadow: 0 1px 2px rgba(29, 29, 31, 0.12);
+  --btn-shadow-hover: 0 6px 18px rgba(29, 29, 31, 0.16);
 
   /* 字体：Apple → 苹方；Android → 思源；Microsoft → 雅黑 */
   --sans:
@@ -99,7 +111,9 @@
   --dur-slow: 0.5s;
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   /* 底部功能区：主岛高度 = 搜索副岛直径（两者共用，保证等大） */
-  --dock-h: 3.96rem;
+  --dock-h: 3.76rem; /* 主岛高 = 芯片 50px + 上下各 7px；搜索圆岛直径跟它等大 */
+  /* 给悬浮岛底栏让出的整块高度：.site-frame 的内边距，首页首屏也减它 */
+  --dock-clearance: calc(6rem + env(safe-area-inset-bottom, 0px));
   color-scheme: light;
 }
 
@@ -134,6 +148,11 @@
   --chip-bg: rgba(255, 255, 255, 0.08);
   --row-hover-bg: rgba(255, 255, 255, 0.06);
   --hl-blue: #6aa5ff;
+  --tab-bg: rgba(255, 255, 255, 0.07);
+  --tab-bg-hover: rgba(255, 255, 255, 0.16);
+  --tab-bg-current: rgba(255, 255, 255, 0.22);
+  --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --btn-shadow-hover: 0 8px 22px rgba(0, 0, 0, 0.55);
 }
 
 /* ---------- 基础 ---------- */
@@ -180,10 +199,27 @@ a {
   border-radius: var(--r-xs);
 }
 
+/* 只给读屏的文字（Apple markup 里的 .visuallyhidden 同款） */
+.visuallyhidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 #root {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* 收掉「满幅元素用 100vw 撑出滚动条那一点点」造成的横向溢出。
+     用 clip 而不是 hidden：clip 不产生滚动容器，fixed 的底栏与差值光标
+     仍以视口为包含块，不会被裁。 */
+  overflow-x: clip;
 }
 
 /* ---------- 整体布局：居中的内容流（无顶栏） ---------- */
@@ -194,7 +230,13 @@ a {
   display: flex;
   flex-direction: column;
   /* 给悬浮岛底栏让位（岛悬浮于底部之上） */
-  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--dock-clearance);
+}
+
+/* ＝临时＝ 底栏隐藏时（App.jsx 的 SHOW_BOTTOM_DOCK = false）：
+   把给它让位的那块高度一起收掉，否则页面底部会留一条 6rem 的空带。 */
+.site-frame--no-dock {
+  padding-bottom: 0;
 }
 
 .site-main {
@@ -285,7 +327,7 @@ a {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  bottom: max(26px, env(safe-area-inset-bottom, 0px));
   z-index: 50;
   display: flex;
   justify-content: center;
@@ -299,29 +341,163 @@ a {
   pointer-events: auto;
 }
 
-/* —— 主岛内容：玻璃由 React Bits <GlassSurface /> 提供，这里只管排版 —— */
-.apptabbar {
+/* —— 主岛内容：圆形图标芯片（样式来自 Uiverse 的 navigation-card）＋
+   我们 dotnav 那版的「当前项撑开」
+   每个导航项是一颗 50px 的圆形芯片（底色极浅，悬浮变深）；
+   当前那枚**撑宽成一颗胶囊**，把栏名浮出来当指示。
+   内边距比原样式收紧了一档（原来 15px 20px，现在 7px 11px），
+   让外框到芯片的距离更近；圆角仍用全站的 --r-pill。 */
+.dotnav {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  /* 胶囊例外：两端是完整圆弧，内容由「胶囊格」居中承载，因此不套用「边距 = 半径」 */
-  padding: 0.22rem;
+  padding: 0.41rem 0.65rem;
 }
 
-/* —— GlassSurface 接入 dock 的适配 —— */
+.dotnav__items {
+  display: flex;
+  align-items: center;
+  gap: 1.76rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dotnav__item {
+  display: flex;
+  align-items: center;
+}
+
+.dotnav__link {
+  /* 50px 圆芯片；宽度可过渡，当前那枚撑开时滑成胶囊 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 2.94rem;
+  height: 2.94rem;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--tab-bg);
+  color: var(--text-2);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    width 0.36s var(--ease-soft),
+    gap 0.36s var(--ease-soft),
+    background 0.3s ease,
+    color 0.2s ease;
+}
+
+.dotnav__link:hover {
+  background: var(--tab-bg-hover);
+  color: var(--text);
+}
+
+.dotnav__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: currentColor;
+}
+
+/* 铺得满的图标（链环那对路径）单独收一档，视觉重量才和别的图标齐平 */
+.dotnav__icon--sm {
+  width: 1.02rem;
+  height: 1.02rem;
+}
+
+/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才浮出来 */
+.dotnav__label {
+  max-width: 0;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    max-width 0.36s var(--ease-soft),
+    opacity 0.2s ease;
+}
+
+/* 当前项：**不填黑块**，只用比悬浮再深一档的浅灰，靠「撑开 + 浮出栏名」做指示
+   （Uiverse 那份 navigation-card 的干净感就来自所有 tab 都是一个浅色）。
+   宽度定为 7rem：任何时刻恰好一枚是展开的，所以整条岛的宽度恒定、不会忽宽忽窄。
+   图标与字号和别的项完全一致——早先填黑块时白字形会「显胖」需要收 8%，
+   换成浅灰底之后这个补偿不再需要。 */
+.dotnav__link.is-current {
+  width: 7rem;
+  gap: 0.45rem;
+  background: var(--tab-bg-current);
+  color: var(--text);
+}
+
+.dotnav__link.is-current .dotnav__label {
+  max-width: 5rem;
+  opacity: 1;
+}
+
+.dotnav__link:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+
+/* —— 两个岛的外壳 ——
+   玻璃版（.dock--glass）交给 React Bits 的 <GlassSurface />，宽高由它的 props 内联给；
+   另外两版（.dock--hairline / .dock--solid）就是一个普通盒子，尺寸在这里给。 */
+.dock-island--pill {
+  flex: 0 0 auto;
+  /* 宽度跟着点列走（点列长度恒定：始终恰好一枚是线），不再撑满一整条 */
+  width: fit-content;
+  height: var(--dock-h);
+  border-radius: var(--r-pill);
+}
+
+.dock-island--circle {
+  flex: 0 0 auto;
+  width: var(--dock-h);
+  height: var(--dock-h);
+  border-radius: var(--r-pill);
+}
+
+/* 透明底 + 1px 发丝线 */
+.dock--hairline .dock-island {
+  background: transparent;
+  border: 1px solid var(--hairline);
+}
+
+/* 实心底 + 极轻的柔影（参考那份 navigation-card 是纯白卡片、不带阴影；
+   但白底页面上完全没有影子的话整条底栏会「消失」，所以留一层几乎看不见的底影） */
+.dock--solid .dock-island {
+  background: var(--bg);
+  box-shadow:
+    0 1px 2px rgba(29, 29, 31, 0.03),
+    0 8px 24px rgba(29, 29, 31, 0.05);
+}
+
+:root[data-theme='dark'] .dock--solid .dock-island {
+  background: #1d1d1f;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* —— GlassSurface 接入 dock 的适配（只有 .dock--glass 这一版用到）—— */
 .dock-glass {
   flex: 0 0 auto;
   overflow: visible; /* 让悬浮文字气泡能溢出岛外，不被裁掉 */
 }
 
 .dock-glass .glass-surface__content {
-  padding: 0; /* 内边距交给 .apptabbar 自己控制 */
+  padding: 0; /* 内边距交给 .dotnav 自己控制 */
 }
 
 /* 圆岛 hover：只放大内部图标，不动玻璃根节点（transform 会让玻璃失效） */
-.dock-glass--circle:hover .search-island svg {
+.dock-island--circle:hover .search-island svg {
   scale: 1.12;
 }
 
@@ -331,128 +507,6 @@ a {
     background:
       linear-gradient(var(--glass-solid), var(--glass-solid)) padding-box,
       var(--glass-rim) border-box;
-  }
-}
-
-.apptabbar__tabs {
-  position: relative;
-  display: flex;
-  width: 100%;
-  gap: 0.15rem;
-  /* 胶囊格与滑动指示器共用这两个值，保证两者始终对齐 */
-  --tab-radius: var(--r-pill);
-  --tab-my: 0.1rem;
-}
-
-.apptabbar__tab {
-  flex: 1 1 0;
-  min-width: 0;
-  position: relative;
-  z-index: 1; /* 在滑动指示器之上 */
-  display: grid;
-  place-items: center;
-  margin: var(--tab-my) 0.08rem;
-  padding: 0.36rem 0;
-  border-radius: var(--tab-radius);
-  color: var(--text-3);
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-  background: transparent;
-  transition:
-    color 0.18s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.apptabbar__tab:hover {
-  color: var(--text-2);
-}
-
-.apptabbar__icon-wrap {
-  display: grid;
-  place-items: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.apptabbar__icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: currentColor;
-}
-
-/* 文字只在悬浮（或键盘聚焦）时出现：图标上方的小气泡 */
-.apptabbar__label {
-  position: absolute;
-  bottom: calc(100% + 0.55rem);
-  left: 50%;
-  z-index: 5;
-  transform: translateX(-50%) translateY(4px);
-  background: var(--tooltip-bg);
-  color: var(--tooltip-text);
-  font-size: 0.72rem;
-  line-height: 1.4;
-  padding: 0.35em var(--r-xs); /* 左右 = 圆角半径 */
-  border-radius: var(--r-xs);
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  box-shadow: 0 4px 14px rgba(29, 29, 31, 0.2);
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease,
-    visibility 0.16s;
-}
-
-.apptabbar__tab:hover .apptabbar__label,
-.apptabbar__tab:focus-visible .apptabbar__label {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* 选中：由下面那枚滑动胶囊承担底色，标签只负责变色加粗 */
-.apptabbar__tab.is-active {
-  background: transparent;
-  color: var(--text);
-  box-shadow: none;
-}
-
-/* 滑动指示器：切换标签时平滑滑到新位置（在玻璃内部，不影响 backdrop-filter） */
-.apptabbar__pill {
-  position: absolute;
-  left: 0;
-  top: var(--tab-my);
-  bottom: var(--tab-my);
-  border-radius: var(--tab-radius);
-  background: var(--active-segment);
-  box-shadow:
-    inset 0 1px 1px var(--segment-sheen),
-    0 1px 3px rgba(29, 29, 31, 0.06);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.apptabbar__tabs.is-ready .apptabbar__pill {
-  transition:
-    transform 0.34s var(--ease-soft),
-    width 0.34s var(--ease-soft),
-    opacity 0.2s ease;
-}
-
-.apptabbar__tab:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 1px;
-  border-radius: var(--tab-radius);
-}
-
-/* 触屏没有 hover：完全不显示文字，仅靠 aria-label 可达 */
-@media (hover: none) {
-  .apptabbar__label {
-    display: none;
   }
 }
 
@@ -629,26 +683,385 @@ a {
 }
 
 /* ============================================================
-   首页
+   首页 · 首屏（hero）
+   一屏之内只有四样东西：欢迎语 / 格言 / 导语 / 两个按钮。
+   高度就是整屏（100dvh）：第一屏干干净净只有它，正文与页脚都在折线以下；
+   底栏岛浮在它下缘的留白里，压不到内容（内容重心被下内边距抬高了）。
    ============================================================ */
-.masthead {
-  padding-top: clamp(3rem, 10vh, 6.5rem);
-  padding-bottom: clamp(2.4rem, 7vh, 4rem);
+.home-hero {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  min-height: 100dvh;
+  /* 下内边距大于上：内容重心略高于几何中心，也不至于落进底栏岛那一带 */
+  padding: clamp(1.5rem, 4vh, 3rem) 0 clamp(5rem, 14vh, 8rem);
 }
 
-.masthead__title {
+/* 首页整页的容器：点阵背景（.home__dots）的定位参照 */
+.home {
+  position: relative;
+}
+
+/* —— 铺满整个主页的一层点阵（React Bits 的 DotField）——
+   横向满幅：它挂在内层内容栏（`.site-frame`，约 973px）里，所以用
+   left:50% + width:100vw + translate 把它向两侧撑到整屏（100vw 含滚动条宽度，
+   超出的那一点由 #root 的 overflow-x: clip 收掉，不会长出横向滚动条）。
+   纵向不动：position:absolute 跟着页面滚，从首屏一直铺到项目结束。
+   z-index:-1 让它沉在页面内容之下；只有纵向一层 mask，在页脚之前淡出。
+   pointer-events:none：点阵不吃事件，它的 mousemove 是监听 window 的。 */
+.home__dots {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  translate: -50% 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 86%, transparent 100%);
+}
+
+.home-hero__title {
   margin: 0;
-  font-size: clamp(2.6rem, 7vw, 4rem);
+  /* 拉丁字形优先（中文仍由后面几档兜底）。
+     站点 --sans 把中文字族排在 'Segoe UI' 之前，机器上装了苹方 / 思源时，
+     英文会落到中文字族的拉丁字形上——那里的 U+2019 是**全角**的，
+     80px 下会在 I’m 中间撑出一个 78px 的空档。这里让英文走拉丁字族，
+     与 README 里「拉丁优先走 SF / Segoe UI」的说法一致。 */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC',
+    'Noto Sans CJK SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
+  /* 英文长标题按容器宽比例缩放：一行约 22 个字符也放得下，
+     窄屏上万一还折行，靠 text-wrap: balance 把两行掰成等宽。
+     换回中文大字（六七个字）时把 max 调到 4.4rem 上下更好看。 */
+  font-size: clamp(1.75rem, 6.75vw, 5.25rem);
   font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
 }
 
-.masthead__tagline {
-  margin: 1.1rem 0 0;
-  max-width: 30em;
+/* 欢迎语的每一行；断行由 site.js 的 welcome 数组决定，不是自动折行 */
+.home-hero__line {
+  display: block;
+  text-wrap: balance;
+}
+
+/* —— 跟着鼠标的那个词（见 components/MagneticWord.jsx）——
+   墨色那层朝指针方向平移出去，原位那层不动，用 ::before 画成蓝色
+   （主蓝 --link）。平移到哪儿，原本被盖住的地方就露出多少蓝色。 */
+.magnet {
+  position: relative;
+  display: inline-block;
+}
+
+.magnet::before {
+  content: attr(data-ghost);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--link);
+  pointer-events: none;
+  /* 浓度跟着位移量（--t，由 MagneticWord 每帧写）：完全没偏时 0，
+     避免字形抗锯齿边缘在墨色字下面渗出一圈淡蓝描边；
+     偏到上限的 2/3 就是满浓度（opacity 自己会把 1.5 倍截到 1）。 */
+  opacity: calc(var(--t, 0) * 1.5);
+}
+
+.magnet__word {
+  position: relative;
+  display: inline-block;
+  /* 位移由 MagneticWord 每帧写进 --shift；没偏时那个变量被摘掉，
+     这里落回 none —— 文字回到原本那条栅格化路径，静止时的边缘观感分毫不动。
+     用独立 translate 属性而不是 transform，免得和别处的 transform 互相覆盖。 */
+  translate: var(--shift, none);
+}
+
+.home-hero__motto {
+  margin: clamp(1rem, 2.4vh, 1.5rem) 0 0;
+  max-width: 32em;
   color: var(--text-2);
-  font-size: 1.05rem;
+  /* 跟着标题一起放大：标题约 80px 时格言落在 24px 上下（≈ 1:3.3） */
+  font-size: clamp(1.05rem, 1.9vw, 1.55rem);
+  line-height: 1.65;
+}
+
+/* 两个按钮：主按钮实心（用文字色反白），副按钮只留发丝描边 */
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: clamp(1.8rem, 4.5vh, 2.6rem);
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  /* 主按钮现在是真的 <button>（点了往下滑一屏，不是跳路由），
+     button 不继承字体，这几项必须显式给： */
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 2.75rem; /* 44px：可点区域下限（苹果的最小点击尺寸） */
+  /* 两个按钮等宽：内容都比这个窄，所以宽度由它决定（也一起比原来的内容宽更长）。
+     窄屏用 40vw 收，保证两个还是一行放得下（390px 下 156+12+156 = 324 < 343）。 */
+  min-width: min(10rem, 40vw);
+  padding: 0 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-size: 0.98rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap; /* 按钮文案永远单行 */
+  text-decoration: none;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    font-size 0.3s ease,
+    box-shadow var(--dur-fast) ease,
+    translate var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.hero-btn--primary {
+  /* 描边式主按钮：底就是页面底色，3px 主蓝描边 + 同色文字；
+     悬浮时整块填成主蓝、文字翻成底色，字号同时抬一档
+     （照搬来那份样式的 1.2em → 1.5em 比例，约 +25%）。
+     圆角不动，仍是全站的 --r-pill（.hero-btn 已给），没有改成原样的 45px。 */
+  position: relative;
+  overflow: hidden;
+  --ob: var(--cta-blue); /* 描边与静止时的字色 */
+  --ob-fill: var(--cta-blue); /* 悬浮时的底色 */
+  --ob-on: var(--bg); /* 悬浮时的字色 */
+  background: var(--bg);
+  color: var(--ob);
+  border-color: var(--ob);
+  border-width: 3px;
+  --btn-shadow: 0 1px 2px rgba(29, 29, 31, 0.06);
+  /* 悬浮时不是往下投影，而是**从按钮四周向外发光**（偏移为 0）：
+     紧一圈提亮 + 外面一圈晕开，合起来才像自身在发光而不是贴了层影。 */
+  --btn-shadow-hover: 0 0 10px rgba(90, 165, 245, 0.55), 0 0 26px rgba(0, 113, 227, 0.42);
+  /* ShinyText 的两个颜色：白底上**不能**用白色当高光——那会把字整个吃掉，
+     所以高光是更深的蓝：扫过时蓝色变深，字始终读得见。 */
+  --shiny-base: var(--ob);
+  --shiny-shine: #0a3d91;
+}
+
+:root[data-theme='dark'] .hero-btn--primary {
+  /* 深色底上 #0071e3 只有 4.47:1，换成更亮的 #0a84ff（对纯黑 5.76:1） */
+  --ob: #0a84ff;
+  --ob-fill: #0a84ff;
+  --ob-on: #000000;
+  --shiny-shine: #003d8f;
+}
+
+/* 描边是主蓝，焦点环就再用蓝会糊在一起：换成文字色 */
+.hero-btn--primary:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.hero-btn--primary:hover {
+  background: var(--ob-fill);
+  color: var(--ob-on);
+  font-size: 1.22rem; /* 0.98rem 的 +25%，与来样 1.2em → 1.5em 同比例 */
+  /* 填成蓝之后字要翻成纯色，ShinyText 的基底也得跟着翻，否则字还停在蓝上 */
+  --shiny-base: var(--ob-on);
+  --shiny-shine: var(--ob-on);
+  translate: 0 -1px;
+  box-shadow: var(--btn-shadow-hover);
+}
+
+/* 按下的回弹：轻微缩小，像实体按键 */
+.hero-btn:active {
+  translate: 0 0;
+  scale: 0.98;
+}
+
+/* —— 首屏副按钮：一排圆形社交按钮 ——
+   样式来源：Uiverse.io by GigioBagigi0 的 .card / .social-icons。
+   一排等距图标；指针停在某一枚上时，**它浮出名字气泡、其余几枚模糊并缩小**，
+   视线被拉到指针那一枚。尺寸沿用主按钮那套（等宽、等高），所以两个并排仍然齐平。
+   内容来自 src/site.js 的 SITE.social（href 留空的那项不渲染）。 */
+.social-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0.15rem;
+  min-width: min(10rem, 40vw);
+  min-height: 2.75rem;
+  padding: 0 0.6rem;
+  border-radius: var(--r-pill);
+  background: var(--chip-bg);
+}
+
+.social-card__item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: var(--r-pill);
+  color: var(--text-2);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.2s ease,
+    filter 0.35s var(--ease-soft),
+    scale 0.35s var(--ease-soft);
+}
+
+/* 指向某一枚时它不再换色（品牌色本身就是它的身份），
+   强调交给「其余几枚失焦缩小」那一下 */
+.social-card__item:hover,
+.social-card__item:focus-visible {
+  color: inherit;
+}
+
+.social-card__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+/* —— 品牌色：B 站粉 / GitHub 墨黑 / 邮箱主蓝 ——
+   对比度按 UI 那条 3:1 卡过（底色是 --chip-bg 压在页面上 ≈ #f4f4f4）：
+   B 站官方那支粉 #FB7299 只有 2.40:1，浅色下压深一档到 #E8558A（3.13:1，
+   肉眼几乎还是那支粉）；深色底上官方粉本身有 5.44:1，直接用官方值。
+   GitHub 的墨黑在深色底上会消失，深色下换浅灰。 */
+.social-card__item--bilibili {
+  color: #e8558a;
+}
+
+.social-card__item--github {
+  color: #1d1d1f;
+}
+
+.social-card__item--email {
+  color: var(--cta-blue);
+}
+
+:root[data-theme='dark'] .social-card__item--bilibili {
+  color: #fb7299;
+}
+
+:root[data-theme='dark'] .social-card__item--github {
+  color: #d2d2d7;
+}
+
+:root[data-theme='dark'] .social-card__item--email {
+  color: #0a84ff;
+}
+
+/* 指向某一枚时，其余几枚失焦缩小——这是那份样式里最要紧的一下。
+   用 :has() 兜一层：指针只落在卡片空白处时不该整排都糊掉。 */
+.social-card:has(.social-card__item:hover) .social-card__item:not(:hover) {
+  filter: blur(2.4px);
+  scale: 0.82;
+}
+
+/* 名字气泡（照着来样那个带小三角的浮层做，颜色换成站点的浮层配色） */
+.social-card__label {
+  position: absolute;
+  bottom: calc(100% + 0.65rem);
+  left: 50%;
+  translate: -50% 4px;
+  padding: 0.3em var(--r-xs); /* 左右 = 圆角半径 */
+  border-radius: var(--r-xs);
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease,
+    translate 0.16s ease,
+    visibility 0.16s;
+}
+
+.social-card__label::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0;
+  border-top: 0.4rem solid var(--tooltip-bg);
+  border-left: 0.32rem solid transparent;
+  border-right: 0.32rem solid transparent;
+}
+
+.social-card__item:hover .social-card__label,
+.social-card__item:focus-visible .social-card__label {
+  opacity: 1;
+  visibility: visible;
+  translate: -50% 0;
+}
+
+.social-card__item:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+/* 触屏没有 hover：气泡永远出不来，名字交给 aria-label */
+@media (hover: none) {
+  .social-card__label {
+    display: none;
+  }
+}
+
+/* —— ShinyText（React Bits）：一道光扫过文案 ——
+   这次回到了上游那套机制「渐变 + background-clip: text」：底色是按钮的字色，
+   中段是高光，扫过去就是「一束光」。数值照上游：120deg、background-size 200%、
+   位移 150% → -50%，周期 2.6s。
+   高光为什么是更深的蓝而不是白：按钮现在是**白底蓝字**，白色高光扫过等于把字
+   擦掉（字和底一个颜色）；换成深一档的蓝，扫过时是蓝色变深，字始终读得见。
+   两个颜色由使用处给（见 .hero-btn--primary）。 */
+.shiny-text {
+  display: inline-block;
+  background-image: linear-gradient(
+    120deg,
+    var(--shiny-base, #b5b5b5) 0%,
+    var(--shiny-base, #b5b5b5) 46%,
+    var(--shiny-shine, #ffffff) 50%,
+    var(--shiny-base, #b5b5b5) 54%,
+    var(--shiny-base, #b5b5b5) 100%
+  );
+  background-size: 200% auto;
+  /* 这里**不能**写 no-repeat：文字是被 background-clip 剪出来的，
+     渐变没铺到的地方字形会直接消失（实测按钮文案被吃掉半截）。
+     上游靠默认的 repeat 平铺，渐变首尾同色所以接缝看不出来。 */
+  background-repeat: repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shiny-text 2.6s linear infinite;
+}
+
+@keyframes shiny-text {
+  from {
+    background-position: 150% center;
+  }
+  to {
+    background-position: -50% center;
+  }
+}
+
+/* 减弱动态效果时不要留一束停在半路的渐变：直接回到按钮自己的文字色 */
+@media (prefers-reduced-motion: reduce) {
+  .shiny-text {
+    background-image: none;
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 /* 首页文章流：单栏卡片 —— 一条一行，占满内容宽 */
@@ -1605,24 +2018,12 @@ a {
 /* ============================================================
    动效：只保留克制的入场与悬停
    ============================================================ */
-.masthead__title,
-.masthead__tagline {
-  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.masthead__tagline {
-  animation-delay: 0.08s;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* 首屏：三块内容自上而下依次入场（--i 由 Home.jsx 给） */
+.home-hero__title,
+.home-hero__motto,
+.home-hero__actions {
+  animation: rise-soft var(--dur-slow) var(--ease-soft) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
 }
 
 /* ============================================================
@@ -1635,37 +2036,43 @@ a {
   }
 
   .dock {
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
     gap: 0.6rem;
     padding: 0 0.55rem;
-    --dock-h: 3.52rem; /* 窄屏时主岛更矮，副岛直径随之等大 */
+    /* 窄屏再缩一档：芯片 40px + 上下各 6px */
+    --dock-h: 3.25rem;
   }
 
-  .apptabbar {
-    padding: 0.18rem;
+  .dotnav {
+    padding: 0.35rem 0.55rem;
   }
 
-  .apptabbar__tabs {
-    --tab-radius: var(--r-pill);
-    --tab-my: 0.08rem;
+  .dotnav__items {
+    gap: 0.9rem;
   }
 
-  .apptabbar__tab {
-    padding: 0.3rem 0;
+  .dotnav__link {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
-  .apptabbar__icon-wrap {
-    width: 2.4rem;
-    height: 2.4rem;
+  .dotnav__link.is-current {
+    width: 6rem;
   }
 
-  .apptabbar__icon {
-    width: 1.35rem;
-    height: 1.35rem;
+  .dotnav__icon {
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
-  .apptabbar__label {
-    font-size: 0.68rem;
+  /* 窄屏这一条也按比例收，否则会被上面的 .dotnav__icon 盖掉「小一档」 */
+  .dotnav__icon--sm {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .dotnav__label {
+    font-size: 0.72rem;
   }
 
   .search-island svg {
@@ -1703,8 +2110,13 @@ a {
     font-size: 0.72rem;
   }
 
-  .masthead {
-    padding-top: 2.6rem;
+  .home-hero {
+    padding-bottom: clamp(3rem, 9vh, 5rem);
+  }
+
+  .hero-btn {
+    padding: 0 1.25rem;
+    font-size: 0.94rem;
   }
 
   .archive-row__link {
@@ -1755,17 +2167,6 @@ a {
   }
 }
 
-@keyframes pop-in {
-  from {
-    opacity: 0.5;
-    scale: 0.85;
-  }
-  to {
-    opacity: 1;
-    scale: 1;
-  }
-}
-
 @keyframes dock-in {
   from {
     opacity: 0;
@@ -1808,11 +2209,9 @@ a {
   animation: rise-soft var(--dur-slow) var(--ease-soft) both;
 }
 
-/* 首页卡片：按顺序错峰入场 */
-.post-card {
-  animation: rise-soft var(--dur-slow) var(--ease-soft) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
+/* 首页卡片不再按加载顺序入场：在折线以下，加载时入场看不见。
+   整节改由 <Reveal /> 在滚进视口时入场（.post-card 自己保留悬停的
+   transform 过渡，两者不能共用同一条 transition）。 */
 
 /* 滚动进入（配合 <Reveal />） */
 .reveal {
@@ -1831,20 +2230,7 @@ a {
 
 /* 底栏：注意不要给 .dock / .glass-surface 加 transform / opacity 动画或过渡，
    那会给 backdrop-filter 制造新的 backdrop root，玻璃会失效（实测像素差异≈0）。
-   所以入场动效只做在岛内部（图标层）。 */
-.apptabbar__tab.is-active .apptabbar__icon-wrap {
-  animation: pop-in 0.32s var(--ease-soft);
-}
-
-.apptabbar__icon-wrap {
-  transition:
-    translate var(--dur-fast) ease,
-    scale var(--dur-fast) ease;
-}
-
-.apptabbar__tab:hover .apptabbar__icon-wrap {
-  translate: 0 -1px;
-}
+   所以动效只做在岛内部（每一格自己的宽度与图标/文字层）。 */
 
 /* 搜索浮层与结果列表 */
 .search-panel {

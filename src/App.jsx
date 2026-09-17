@@ -11,6 +11,12 @@ import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
 import BottomDock from './components/BottomDock.jsx'
 
+// ＝临时＝ 底栏先隐藏。**不是删掉**：组件、玻璃岛、搜索浮层、样式一律原样保留，
+// 只是不挂载，并且把它在页面底部让出的那块高度也收掉（.site-frame--no-dock）。
+// 想让它回来：把这里改成 true，别的地方都不用动。
+// （底栏已经按 apple.com 的 dotnav 重做过一版，现在是 true，先看新样子。）
+const SHOW_BOTTOM_DOCK = true
+
 /** 路由切换时回到顶部 */
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -45,7 +51,7 @@ export default function App() {
   useInternalLinks()
   return (
     <>
-      <div className="site-frame">
+      <div className={`site-frame${SHOW_BOTTOM_DOCK ? '' : ' site-frame--no-dock'}`}>
         <main className="site-main">
           <ScrollToTop />
           {/* key = 路径：每次路由切换重放一次入场动效 */}
@@ -65,7 +71,7 @@ export default function App() {
         </main>
         <Footer />
       </div>
-      <BottomDock />
+      {SHOW_BOTTOM_DOCK && <BottomDock />}
     </>
   )
 }
