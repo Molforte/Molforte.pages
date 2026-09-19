@@ -63,7 +63,6 @@ export default function App() {
               <Route path="/notes/:volume/:note" element={<Note />} />
               <Route path="/fragment/:slug" element={<Fragment />} />
               <Route path="/friends" element={<StaticPage slug="friends" />} />
-              <Route path="/about" element={<StaticPage slug="about" />} />
               <Route path="/post/:slug" element={<Post />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

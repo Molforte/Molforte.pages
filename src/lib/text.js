@@ -1,14 +1,18 @@
 /**
- * 文本统计：字数只算「正文」，代码不算。
+ * 文本统计：字数只算「正文」，代码与注释都不算。
  *
  * 约定：``` 或 ~~~ 围栏代码块（语言标志任意——C / matlab / verilog / mermaid / cpp …）
- * 整块丢弃；行内 `代码` 也丢弃；没加围栏的普通正文才计入。
+ * 整块丢弃；行内 `代码` 也丢弃；`<!-- HTML 注释 -->` 同样丢弃（那是写给作者看的，
+ * 不是读者会看到的内容）；没加围栏的普通正文才计入。
  * 没闭合的围栏按「到文末」处理，避免把后半篇正文当成代码。
  */
 export function stripCode(md) {
+  // 注释先整段摘掉：它可能跨多行，而且里面常带示例代码块，
+  // 放到行循环里处理会被围栏规则带走半个文件
+  const src = String(md).replace(/<!--[\s\S]*?-->/g, '')
   const out = []
   let fence = null // { ch, len }
-  for (const line of String(md).split(/\r?\n/)) {
+  for (const line of src.split(/\r?\n/)) {
     const any = /^\s*(`{3,}|~{3,})(.*)$/.exec(line)
     const bare = /^\s*(`{3,}|~{3,})\s*$/.exec(line) // 只有围栏、没有语言标志 → 结束围栏
     if (fence) {

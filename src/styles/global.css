@@ -52,16 +52,17 @@
   --panel-bg: rgba(255, 255, 255, 0.94);
   --panel-shadow: 0 24px 80px rgba(29, 29, 31, 0.22);
   --backdrop: rgba(29, 29, 31, 0.18);
-  --card-bg: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-  --card-border: rgba(29, 29, 31, 0.07);
-  --card-border-hover: rgba(29, 29, 31, 0.16);
-  --card-shadow:
-    0 1px 2px rgba(29, 29, 31, 0.03), 0 10px 28px rgba(29, 29, 31, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --card-shadow-hover:
-    0 10px 24px rgba(29, 29, 31, 0.07), 0 2px 6px rgba(29, 29, 31, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  /* 「浮起来的东西」的表面色与影：底栏那两座岛、首页两张卡、归档与册页的卡片
+     全部共用这一套 —— 同一个站里"浮起来的东西"应该是同一种材料，
+     不该一处一个影。--island-shadow-hover 是它们悬浮时共同的那一号影。 */
+  --surface: #ffffff;
+  --island-shadow: 0 1px 2px rgba(29, 29, 31, 0.03), 0 8px 24px rgba(29, 29, 31, 0.05);
+  --island-shadow-hover: 0 1px 2px rgba(29, 29, 31, 0.04), 0 12px 30px rgba(29, 29, 31, 0.09);
   --chip-bg: rgba(29, 29, 31, 0.05);
+  /* 标签页那条栏的底色，必须是**不透明**的：栏与两块「缺口」小方块都用它，
+     半透明的话方块压在栏上会合成出更亮的一块（原版那两块是写死不透明色的）。
+     值 = rgba(29,29,31,.05) 压在 #fff 上的结果。 */
+  --tabbar-bg: #f2f2f2;
   --row-hover-bg: rgba(29, 29, 31, 0.035);
   --hl-blue: #0066cc;
   /* 底栏每颗圆形芯片的底色（Uiverse 那份 navigation-card 的 #fcfcfc / #dfdfdf）；
@@ -140,12 +141,12 @@
   --panel-bg: rgba(28, 28, 30, 0.96);
   --panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
   --backdrop: rgba(0, 0, 0, 0.6);
-  --card-bg: #1d1d1f;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(255, 255, 255, 0.18);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --card-shadow-hover: 0 10px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --surface: #1d1d1f;
+  --island-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --island-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 30px rgba(0, 0, 0, 0.55);
   --chip-bg: rgba(255, 255, 255, 0.08);
+  /* 同上：rgba(255,255,255,.08) 压在 #1d1d1f 上的结果 */
+  --tabbar-bg: #2a2a2c;
   --row-hover-bg: rgba(255, 255, 255, 0.06);
   --hl-blue: #6aa5ff;
   --tab-bg: rgba(255, 255, 255, 0.07);
@@ -471,19 +472,15 @@ a {
 }
 
 /* 实心底 + 极轻的柔影（参考那份 navigation-card 是纯白卡片、不带阴影；
-   但白底页面上完全没有影子的话整条底栏会「消失」，所以留一层几乎看不见的底影） */
+   但白底页面上完全没有影子的话整条底栏会「消失」，所以留一层几乎看不见的底影）。
+   这份影抽成 --island-shadow：第二屏那张卡片用的是同一份，两处才是同一种材料。 */
 .dock--solid .dock-island {
-  background: var(--bg);
-  box-shadow:
-    0 1px 2px rgba(29, 29, 31, 0.03),
-    0 8px 24px rgba(29, 29, 31, 0.05);
+  background: var(--surface);
+  box-shadow: var(--island-shadow);
 }
 
 :root[data-theme='dark'] .dock--solid .dock-island {
-  background: #1d1d1f;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 8px 24px rgba(0, 0, 0, 0.4);
+  background: var(--surface);
 }
 
 /* —— GlassSurface 接入 dock 的适配（只有 .dock--glass 这一版用到）—— */
@@ -703,24 +700,314 @@ a {
   position: relative;
 }
 
-/* —— 铺满整个主页的一层点阵（React Bits 的 DotField）——
+/* ============================================================
+   首页第二屏：Whoami —— 规规矩矩的一页
+   左边一枚标题（开头那个 W 是首屏飞下来的），下面一张推文式的大卡片。
+   ============================================================ */
+.whoami {
+  min-height: 100dvh;
+  /* 上内边距决定 W 的**落点**：太小的话 PC 上标题会贴在视口顶上，看着局促。
+     原来 11vh（900 高时约 99px）偏紧，抬到 19vh（约 171px）。 */
+  padding: clamp(4rem, 19vh, 11rem) 0 var(--dock-clearance);
+}
+
+.whoami__title {
+  margin: 0;
+  font-size: clamp(2rem, 6.2vw, 4rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+/* 标题是**一个盒子**：整串 Whoami 都在里面，W 与 hoami 是同一段文字的前后两截。
+   靠裁切宽度决定露多少：
+     飞行期间 0（这一页没有标题）→ 落定瞬间露成一个 W 宽 → 下一帧长到整串宽。 */
+.whoami__title {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+html.has-flying-w .whoami__title {
+  width: 0;
+}
+
+html.has-flying-w .whoami__title.is-landed {
+  width: var(--tw-from, auto);
+}
+
+/* 从「一个 W」长到整串：这一步就是「由 W 变成 Whoami」 */
+html.has-flying-w .whoami__title.is-expanded {
+  width: var(--tw-to, auto);
+  transition: width 0.52s cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+/* 真身落定后，首屏那个用来飞的字淡出——它已经交给标题里那个 W 了 */
+html.has-flying-w.is-w-landed .home-hero__w {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* —— 第二屏那张卡片 ——
+   表面照底栏那两座岛做：**实心底 + 同一份极轻的影**（--surface / --island-shadow）。
+   站里"浮起来的东西"因此是同一种材料，而不是一处一个影。
+   内部是标签页（见 .wtabs 一族），所以卡片自己不设内边距，交给栏与面板。 */
+.whoami__card {
+  margin-top: clamp(1.8rem, 5vh, 3rem);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--island-shadow);
+}
+
+/* ============================================================
+   卡片内部：标签页（样式照 Uiverse 的 radio tabs 移植）
+   一条浅灰标签栏；选中的标签底色与面板一致，两侧两块「缺口」小方块
+   用 box-shadow 在圆角外补出反向圆角，标签与面板于是像连在一起的一张纸。
+   改造了四处：颜色换成站点 token；缺口用**不透明**的栏底色（原版也是写死不透明的，
+   用半透明色会压在栏上合成出更亮的一块）；面板走正常文档流（原实现是 absolute，
+   卡片撑不开高度）；交互换成真正的 ARIA 标签页（见 WhoamiTabs.jsx）。
+   —— 圆角与边距按站里的规矩对齐：
+      · 卡片圆角 --r-lg(20px)，栏与面板的左右/下内边距也是它（「边距 = 圆角半径」）
+      · 标签圆角 --r-sm(12px)，缺口的边长与它相等 —— 两个半径一样，
+        补出来的反向圆角才和标签的圆角是同一条曲线，接缝才连续
+   ============================================================ */
+.wtabs {
+  --tab-radius: var(--r-sm);
+  --notch: var(--tab-radius); /* 缺口边长 = 标签圆角 */
+  --notch-shift: 3px; /* 反向圆角往外推多少（原版 10px 方块配 3px） */
+}
+
+.wtabs__bar {
+  display: flex;
+  align-items: flex-end;
+  padding: 0.5rem var(--r-lg) 0;
+  background: var(--tabbar-bg);
+  border-top-left-radius: var(--r-lg);
+  border-top-right-radius: var(--r-lg);
+}
+
+.wtabs__tab {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 0.15s ease-in-out;
+}
+
+.wtabs__tab:hover {
+  color: var(--text);
+}
+
+.wtabs__tab[aria-selected='true'] {
+  color: var(--text);
+  font-weight: 600;
+  cursor: default;
+}
+
+.wtabs__name {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-left-radius: var(--tab-radius);
+  border-top-right-radius: var(--tab-radius);
+}
+
+/* 两块「缺口」：自身是标签栏的底色（盖住栏），box-shadow 用面板色在圆角外
+   补出一块反向圆角，于是标签底部与面板之间的那道缝就没了 */
+.wtabs__notch {
+  position: absolute;
+  bottom: 0;
+  width: var(--notch);
+  height: var(--notch);
+  background: var(--tabbar-bg);
+  opacity: 0;
+}
+
+.wtabs__notch--pre {
+  right: calc(-1 * var(--notch));
+  border-bottom-left-radius: var(--notch);
+  box-shadow: calc(-1 * var(--notch-shift)) var(--notch-shift) 0 var(--notch-shift) var(--surface);
+}
+
+.wtabs__notch--pos {
+  left: calc(-1 * var(--notch));
+  border-bottom-right-radius: var(--notch);
+  box-shadow: var(--notch-shift) var(--notch-shift) 0 var(--notch-shift) var(--surface);
+}
+
+.wtabs__tab[aria-selected='true'] .wtabs__notch {
+  opacity: 1;
+}
+
+.wtabs__label {
+  position: relative;
+  z-index: 1;
+  padding: 0.55rem 0.9rem;
+  border-top-left-radius: var(--tab-radius);
+  border-top-right-radius: var(--tab-radius);
+}
+
+.wtabs__tab[aria-selected='true'] .wtabs__name,
+.wtabs__tab[aria-selected='true'] .wtabs__label {
+  background: var(--surface);
+}
+
+.wtabs__tab:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+/* 三块面板叠在同一个网格格里：容器高度 = **最高**的那块，
+   切页签时卡片高度不动。非活动的用 visibility 藏起来——
+   它能从无障碍树里消失、里面的链接也拿不到焦点，但**仍然占位**，
+   而 display:none / hidden 会把高度塌掉（那样卡片就会跳）。 */
+.wtabs__panels {
+  display: grid;
+}
+
+.wtabs__panel {
+  grid-area: 1 / 1;
+  padding: 1.4rem var(--r-lg) var(--r-lg);
+  visibility: hidden;
+}
+
+.wtabs__panel.is-active {
+  visibility: visible;
+}
+
+/* 标签页里的正文比文章正文紧凑一档（其余排版复用 .post-body） */
+.wtabs__body {
+  margin-top: 0;
+  font-size: 0.99rem;
+  line-height: 1.85;
+}
+.wtabs__body p {
+  margin-bottom: 1.15em;
+}
+
+/* ============================================================
+   首页第三屏：最近更新
+   三张卡片并排 + 一个 More →。卡片表面与底栏岛、第二屏那张卡同一套材料
+   （--surface + --island-shadow），所以整页"浮起来的东西"是一致的。
+   条目由内容库生成（笔记与文章混排、按日期倒序），写了新的首页自己会变。
+   ============================================================ */
+.home-recent {
+  padding: clamp(3.2rem, 9vh, 5.5rem) 0 var(--dock-clearance);
+}
+
+.home-recent__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.home-recent__list {
+  display: grid;
+  /* 一列：三张卡片竖着排、每张占满内容栏（原来并排三列） */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1.25rem 1.35rem 1.35rem;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--island-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    translate 0.2s var(--ease-soft),
+    box-shadow 0.2s var(--ease-soft);
+}
+
+.recent-card:hover {
+  translate: 0 -2px;
+  box-shadow: var(--island-shadow-hover);
+}
+
+.recent-card__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin: 0;
+  color: var(--text-3);
+  font-size: 0.78rem;
+}
+
+.recent-card__where {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.recent-card__meta time {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.recent-card__title {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+/* 摘要最多两行：卡片高度才整齐 */
+.recent-card__summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  /* 卡片现在是一整行了，摘要限个宽度，免得一行拖到九百多像素读不动 */
+  max-width: 58ch;
+  /* 预留两行高度：摘要短的卡片不会因此比别的矮一截，三张卡一样齐 */
+  min-height: 3.4em;
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.home-recent__more {
+  margin: 1.6rem 0 0;
+  /* 左对齐：跟卡片、跟标题同一个左边缘 */
+  font-size: 0.95rem;
+}
+
+/* —— 首屏那一层点阵（React Bits 的 DotField）——
+   **只铺首屏一屏**：高度写死 100dvh，往下翻（Whoami、最近更新）就是干净的白底。
    横向满幅：它挂在内层内容栏（`.site-frame`，约 973px）里，所以用
    left:50% + width:100vw + translate 把它向两侧撑到整屏（100vw 含滚动条宽度，
    超出的那一点由 #root 的 overflow-x: clip 收掉，不会长出横向滚动条）。
-   纵向不动：position:absolute 跟着页面滚，从首屏一直铺到项目结束。
-   z-index:-1 让它沉在页面内容之下；只有纵向一层 mask，在页脚之前淡出。
-   pointer-events:none：点阵不吃事件，它的 mousemove 是监听 window 的。 */
+   纵向跟着页面滚（position:absolute），下缘用一层 mask 淡出，免得被切一刀。
+   z-index:-1 让它沉在内容之下；pointer-events:none：点阵不吃事件，
+   它的 mousemove 是监听 window 的。 */
 .home__dots {
   position: absolute;
   top: 0;
-  bottom: 0;
   left: 50%;
   width: 100vw;
+  height: 100dvh;
   translate: -50% 0;
   z-index: -1;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 86%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
 }
 
 .home-hero__title {
@@ -1064,133 +1351,9 @@ a {
   }
 }
 
-/* 首页文章流：单栏卡片 —— 一条一行，占满内容宽 */
-.post-index {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.post-card {
-  margin: 0;
-  /* 摘要固定 3 行后就不必再预留余量：高度贴合内容，标题折两行时卡片自己变高。
-     11rem 是「一行标题」时的舒适下限（此时摘要与元信息之间约 21px，正好一个圆角半径）。 */
-  display: flex; /* 让 .post-card__link 撑满卡片，元信息的 auto 外边距才能贴到底 */
-  min-height: 11rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: var(--card-shadow);
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.post-card:hover {
-  border-color: var(--card-border-hover);
-  transform: translateY(-3px);
-  box-shadow: var(--card-shadow-hover);
-}
-
-.post-card__link {
-  display: flex;
-  flex: 1; /* 撑满卡片（卡片用 min-height，不能靠 height: 100%） */
-  flex-direction: column;
-  padding: var(--r-lg); /* = 圆角半径 */
-  color: var(--text);
-  text-decoration: none;
-}
-
-.post-card__title {
-  /* 墨迹贴齐卡片圆角（同归档：抵消半行距 + 字体内部空隙） */
-  --lh: 1.42;
-  margin: calc((1 - var(--lh)) / 2 * 1em - var(--ink-gap)) 0 0;
-  font-size: 1.06rem;
-  font-weight: 600;
-  line-height: var(--lh);
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: color 0.16s ease;
-}
-
-.post-card:hover .post-card__title {
-  color: var(--link);
-}
-
 /* 摘要固定为整数行：到第 3 行即省略，避免文字多了后最后一行被切一半。
    注意 height 是必须的——-webkit-box 作为 flex 子项会被块化成 flow-root，
    此时 line-clamp 只负责加省略号、**不限制高度**，不加 height 就会露出第 4 行和半截第 5 行。 */
-.post-card__summary {
-  --lh-sum: 1.6;
-  flex: none;
-  margin: 0.4rem 0 0.75rem;
-  color: var(--text-2);
-  font-size: 0.9rem;
-  line-height: var(--lh-sum);
-  height: calc(3 * var(--lh-sum) * 1em);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.post-card__meta {
-  margin: auto 0 0; /* 贴到卡片底部（上方的 auto 吃掉摘要与标题之间的余量） */
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.55rem;
-  font-size: 0.78rem;
-  color: var(--text-3);
-}
-
-.post-card__date {
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-}
-
-.post-card__tag {
-  background: var(--chip-bg);
-  color: var(--text-2);
-  border-radius: var(--r-xs);
-  padding: 0.16em var(--r-xs); /* 左右 = 圆角半径 */
-  font-size: 0.72rem;
-  line-height: 1.5;
-}
-
-.post-card__read {
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-}
-
-.post-card__link:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
-  border-radius: var(--r-lg);
-}
-
-/* 首页分区里的「还有 N 个项目 · 全部项目 →」紧跟在卡片后面，不加分隔线 */
-.home-section .home-foot {
-  margin: 1.1rem 0 0;
-  border-top: 0;
-  padding-top: 0;
-}
-
-.home-foot {
-  margin: 3rem 0 0;
-  border-top: 1px solid var(--hairline);
-  padding-top: 1.6rem;
-  color: var(--text-3);
-  font-size: 0.875rem;
-}
 
 /* ============================================================
    文章页 / 静态单页（关于·友链）
@@ -1538,12 +1701,12 @@ a {
 
 /* —— 巨大的卡片（页面感 hero） —— */
 .archive-hero {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border: 0;
   border-radius: var(--r-lg);
   padding: var(--r-lg); /* = 圆角半径 */
   margin-bottom: 2.6rem;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--island-shadow);
 }
 
 .archive-hero__title {
@@ -1591,11 +1754,11 @@ a {
 
 /* —— 每个项目一张大卡片（含标题与条目） —— */
 .archive-group-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border: 0;
   border-radius: var(--r-lg);
   overflow: hidden;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--island-shadow);
 }
 
 .archive-group-card + .archive-group-card {
@@ -1704,25 +1867,25 @@ a {
    ============================================================ */
 .columns {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-  gap: 1.2rem;
+  /* 单栏：一册一张卡，占满内容栏（原来是 auto-fill，宽屏会并成两三栏） */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
 }
 
 .column-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border: 0;
   border-radius: var(--r-lg);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--island-shadow);
   transition:
     box-shadow 0.2s ease,
-    transform 0.2s ease,
-    border-color 0.2s ease;
+    translate 0.2s ease;
 }
 
+/* 悬浮：抬 2px + 换大一号的影，和首页那些卡一致 */
 .column-card:hover {
-  border-color: var(--card-border-hover);
-  transform: translateY(-3px);
-  box-shadow: var(--card-shadow-hover);
+  translate: 0 -2px;
+  box-shadow: var(--island-shadow-hover);
 }
 
 .column-card__link {
@@ -1766,6 +1929,8 @@ a {
 
 .column-card__excerpt {
   margin: 0.5rem 0 0;
+  /* 卡片现在是一整行了，摘要限个宽度，免得一行拖到九百多像素读不动 */
+  max-width: 62ch;
   color: var(--text-2);
   font-size: 0.9rem;
   line-height: 1.6;
@@ -1783,20 +1948,6 @@ a {
   color: var(--text-3);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
-}
-
-/* 首页分区：文章在前、项目在后 */
-.home-section + .home-section {
-  margin-top: 3rem;
-}
-
-.home-section__title {
-  --lh: 1.35;
-  margin: 0 0 1rem;
-  font-size: 1.06rem;
-  font-weight: 600;
-  line-height: var(--lh);
-  color: var(--text-2);
 }
 
 .archive-posts {
@@ -1846,11 +1997,11 @@ a {
 }
 
 .volume__intro {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border: 0;
   border-radius: var(--r-lg);
   padding: var(--r-lg); /* = 圆角半径 */
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--island-shadow);
 }
 
 .volume__intro-body > *:first-child {
@@ -1868,11 +2019,11 @@ a {
   margin: 1.6rem 0 0;
   padding: 0;
   list-style: none;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border: 0;
   border-radius: var(--r-lg);
   padding-bottom: 7px; /* 与行内边距相加，末行文字到卡片下边 ≈ 圆角 */
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--island-shadow);
 }
 
 .note-row__link {
@@ -1966,10 +2117,6 @@ a {
 }
 
 @media (max-width: 760px) {
-  .columns {
-    grid-template-columns: 1fr;
-  }
-
   .column-card__excerpt {
     -webkit-line-clamp: 3;
     height: calc(3 * 1.6 * 1em);
@@ -2018,6 +2165,19 @@ a {
 /* ============================================================
    动效：只保留克制的入场与悬停
    ============================================================ */
+/* —— 会飞的那个 W ——
+   动的就是首屏标题里这个 span 本身，不复制一层：--w-p（0→1）由 Home.jsx
+   按滚动进度逐帧写，这里只做插值。往回滚 p 回到 0，字就飞回原位。
+   --w-dx / --w-dy / --w-scale 是目标槽位相对它原位的位移与缩放，同样由 JS 量。
+   @supports 那一套滚动时间轴没有用：支持度不齐，遇到不支持就整段不执行。 */
+.home-hero__w {
+  display: inline-block;
+  --w-p: 0;
+  transform-origin: center;
+  transform: translate(calc(var(--w-dx, 0px) * var(--w-p)), calc(var(--w-dy, 0px) * var(--w-p)))
+    scale(calc(1 + (var(--w-scale, 1) - 1) * var(--w-p)));
+}
+
 /* 首屏：三块内容自上而下依次入场（--i 由 Home.jsx 给） */
 .home-hero__title,
 .home-hero__motto,
@@ -2084,30 +2244,6 @@ a {
 @media (max-width: 760px) {
   html {
     font-size: 16px;
-  }
-
-  .post-card__link {
-    padding: var(--r-lg); /* 窄屏同样「边距 = 圆角半径」，不再单独收窄 */
-  }
-
-  .post-card {
-    min-height: 10.5rem; /* 窄屏下限；实际高度随标题行数贴合 */
-  }
-
-  .post-card__title {
-    font-size: 1rem;
-  }
-
-  /* 摘要仍是整数 3 行，行高与字号按窄屏收一档（原稿里重复了一段 0.97rem 覆盖，已合并） */
-  .post-card__summary {
-    --lh-sum: 1.5;
-    margin: 0.38rem 0 0.66rem;
-    font-size: 0.85rem;
-  }
-
-  .post-card__meta {
-    margin: auto 0 0;
-    font-size: 0.72rem;
   }
 
   .home-hero {

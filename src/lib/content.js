@@ -168,12 +168,23 @@ export function countNoteChars() {
   return volumes.reduce((sum, v) => sum + (v.chars || 0), 0)
 }
 
-/** 全站字数（文章 + 笔记 + 残页），口径统一：只算正文，围栏代码块不计 */
+/** 站点自己写的静态单页（首页第二屏那张卡片的内容源、友链页…）也算进字数。
+    它们的正文同样在 content/pages/ 里、同样是站点自己的文字，
+    只是没进构建期清单，所以在这里按需算（文件是 eager 读进来的，很便宜）。 */
+function countPageChars() {
+  return Object.values(pageModules).reduce((sum, raw) => {
+    const { content } = parseFrontMatter(raw)
+    return sum + countChars(content)
+  }, 0)
+}
+
+/** 全站字数（文章 + 笔记 + 残页 + 静态单页），口径统一：只算正文汉字，围栏代码块不计 */
 export function countAllChars() {
   return (
     posts.reduce((sum, p) => sum + (p.chars || 0), 0) +
     fragments.reduce((sum, f) => sum + (f.chars || 0), 0) +
-    countNoteChars()
+    countNoteChars() +
+    countPageChars()
   )
 }
 
@@ -181,6 +192,18 @@ export function countAllChars() {
 export const searchNotes = volumes.flatMap((v) =>
   v.notes.map((n) => ({ ...n, volume: v.slug, volumeTitle: v.title })),
 )
+
+/** 最近更新的条目：笔记与文章混排、按日期倒序。首页第三屏「最近更新」用。
+    混排是有意的——笔记有几十篇、文章可能很少，只挑文章会挑出一堆空位。
+    每条都带上跳转地址 to 与所属栏目 volumeTitle（文章没有栏目，用「文章」）。 */
+export function recentItems(n = 3) {
+  return [
+    ...searchNotes.map((x) => ({ ...x, to: `/notes/${x.volume}/${x.slug}`, kind: 'note' })),
+    ...posts.map((p) => ({ ...p, to: `/post/${p.slug}`, kind: 'post' })),
+  ]
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+    .slice(0, n)
+}
 
 /** 册首页正文（README/@ 索引页转换而来） */
 export function getVolumeIntro(slug) {

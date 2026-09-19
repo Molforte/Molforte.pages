@@ -27,13 +27,6 @@ const ICON = {
       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </>
   ),
-  about: (
-    <>
-      <circle cx="12" cy="12" r="8.2" />
-      <path d="M12 10.6v6.4" />
-      <circle cx="12" cy="7.5" r="1.15" fill="currentColor" stroke="none" />
-    </>
-  ),
   search: (
     <>
       <circle cx="10.6" cy="10.6" r="6.2" />
@@ -48,7 +41,6 @@ const TABS = [
   { to: '/', label: 'Home', end: true, icon: ICON.home },
   { to: '/archive', label: 'Archive', icon: ICON.archive },
   { to: '/friends', label: 'Links', icon: ICON.links, small: true },
-  { to: '/about', label: 'About', icon: ICON.about },
 ]
 
 const ICON_PROPS = {

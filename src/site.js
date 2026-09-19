@@ -38,6 +38,14 @@ export const SITE = {
     { key: 'email', label: 'Email', href: 'mailto:molforte@example.com' },
   ],
 
+  // 首页第二屏 · Whoami（「Get Started」往下滑一屏就落在这里）。
+  // 标题开头那个 W 不在这里写：它是首屏 Welcome 里那个 W 飞下来落成的。
+  // 卡片里的内容是标签页，一个 H1 一个标签，正文取自 content/pages/<page>.md。
+  whoami: {
+    title: 'Whoami',
+    page: 'whoami',
+  },
+
   // 页脚一句话说明
   footerNote: '用 Markdown 写作 · 用 React 构建 · 部署在 GitHub Pages',
 
