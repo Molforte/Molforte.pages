@@ -1765,12 +1765,16 @@ html.has-flying-w.is-w-landed .home-hero__w {
   color: var(--text);
 }
 
+/* 复制结果只用**颜色**表示，文字（代码语言）始终不动：
+   成功 → 强调色（字 + 描边一起变），失败 → 变淡。
+   读屏那边靠 aria-label 播报，不依赖视觉。 */
 .code-copy[data-copied='1'] {
   color: var(--link);
+  box-shadow: 0 0 0 1px var(--link);
 }
 
 .code-copy[data-copied='0'] {
-  color: var(--text-2);
+  color: var(--text-3);
 }
 
 /* ============================================================

@@ -64,13 +64,17 @@ export default function MarkdownBody({ html, className = 'post-body' }) {
       if (!code) return
       // 末尾那个换行是代码块自带的，复制时去掉，粘出来才干净
       const ok = await copyText(code.textContent.replace(/\n$/, ''))
-      btn.textContent = ok ? '已复制' : '复制失败'
+      // **文字不动**（那颗按钮永远显示代码语言），结果只用颜色表示：
+      // data-copied=1 → 强调色，0 → 变淡。读屏那边靠 aria-label 播报。
       btn.dataset.copied = ok ? '1' : '0'
+      btn.setAttribute('aria-label', ok ? '已复制' : '复制失败')
+      btn.title = ok ? '已复制' : '复制失败，请手动选中复制'
       clearTimeout(btn._copyTimer)
       btn._copyTimer = setTimeout(() => {
-        btn.textContent = '复制'
         btn.dataset.copied = ''
-      }, 1600)
+        btn.setAttribute('aria-label', '复制这段代码')
+        btn.title = '复制代码'
+      }, 1400)
       return
     }
 
