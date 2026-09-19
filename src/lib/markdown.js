@@ -62,15 +62,22 @@ export function renderMarkdown(md, options = {}) {
   s = s.replace(/\uE000(\d+)\uE000/g, (m, i) => kept[+i])
   // 两处渲染后处理（都在 MarkdownBody 里接管事件，见那个组件）：
   //   · 表格套一层横向滑轨（不要把 display:block 加在表格上，会丢列宽）；
-  //   · 代码块包一层，右上角放「复制」按钮（图标/文案由 CSS 与组件管）。
+  //   · 代码块包一层：右上角那颗按钮的文案就是代码语言（```c → 「c」），
+  //     没写语言的退回「复制」，否则那颗按钮看起来就不是按钮。
+  //   行号由 MarkdownBody 按真实行数插进去（在那儿数最准），插在卡片**外面**。
   return marked
     .parse(s)
     .replace(/<table>/g, '<div class="rail-scroll"><table>')
     .replace(/<\/table>/g, '</table></div>')
-    .replace(
-      /<pre>/g,
-      '<div class="code-block"><button type="button" class="code-copy" aria-label="复制这段代码">复制</button><pre>',
-    )
+    .replace(/<pre><code(?: class="language-([^"]+)")?>/g, (m, lang) => {
+      const cls = lang ? ` class="language-${esc(lang)}"` : ''
+      const tag = lang ? esc(lang) : '复制'
+      return (
+        `<div class="code-block">` +
+        `<button type="button" class="code-copy" aria-label="复制这段代码" title="复制代码">${tag}</button>` +
+        `<pre><code${cls}>`
+      )
+    })
     .replace(/<\/pre>/g, '</pre></div>')
 }
 

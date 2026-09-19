@@ -16,6 +16,21 @@ export default function MarkdownBody({ html, className = 'post-body' }) {
   useEffect(() => {
     if (!ref.current) return
     ref.current.querySelectorAll('pre code').forEach((el) => highlightCodeBlock(el))
+
+    // 代码块左侧的行号：按**真实行数**生成，插在卡片**外面**（页面上是
+    // 「行号 | 代码卡片」两列）。行号不参与代码的横向滚动，代码滑走时它留着。
+    // 在 DOM 上数行数最准（高亮之后 spans 可能跨行，切字符串会切坏 HTML）。
+    ref.current.querySelectorAll('.code-block').forEach((block) => {
+      const pre = block.querySelector('pre')
+      if (!pre || block.querySelector('.code-nums')) return
+      const lines = pre.textContent.replace(/\n$/, '').split('\n').length
+      const nums = document.createElement('div')
+      nums.className = 'code-nums'
+      nums.setAttribute('aria-hidden', 'true') // 读屏不必念一遍行号
+      nums.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n')
+      block.insertBefore(nums, pre)
+    })
+
     renderMathIn(ref.current)
   }, [html])
 

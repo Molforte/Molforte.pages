@@ -1705,8 +1705,37 @@ html.has-flying-w.is-w-landed .home-hero__w {
    按钮的标记由 markdown.js 渲染时写进 HTML（.code-block > .code-copy + pre），
    点击由 MarkdownBody 事件委托接管，复制完把文案换成「已复制」。
    ============================================================ */
+/* ============================================================
+   代码块：左边行号、右边代码卡片
+   行号在**卡片之外**（站在页面底色上），且不参与代码的横向滚动 ——
+   代码滑走时行号留在原地。两列的纵向对齐靠三件事完全相同：
+   font-family / font-size / line-height，再加上行号自己的 padding-top
+   等于卡片的 padding。改代码块的排版参数时，这几项要一起改。
+   ============================================================ */
 .code-block {
   position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.7rem;
+  /* 竖直外边距挪到容器上，卡片自己归零，两列才对得齐 */
+  margin: 1.9em 0;
+}
+
+.code-block pre {
+  margin: 0;
+}
+
+.code-nums {
+  padding-top: var(--r-md); /* = 卡片的 padding，数字才和代码第一行齐平 */
+  font-family: var(--mono);
+  font-size: 0.875rem; /* = 卡片里的字号 */
+  line-height: 1.75; /* = 卡片里的行高 */
+  color: var(--text-3);
+  text-align: right;
+  white-space: pre;
+  user-select: none; /* 选代码时别把行号一起选走 */
+  font-variant-numeric: tabular-nums;
 }
 
 .code-copy {
@@ -1723,7 +1752,7 @@ html.has-flying-w.is-w-landed .home-hero__w {
   background: var(--surface);
   color: var(--text-2);
   box-shadow: 0 0 0 1px var(--hairline);
-  font: inherit;
+  font-family: var(--mono);
   font-size: 0.78rem;
   line-height: 1.7;
   cursor: pointer;
