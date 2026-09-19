@@ -59,6 +59,10 @@
   --island-shadow: 0 1px 2px rgba(29, 29, 31, 0.03), 0 8px 24px rgba(29, 29, 31, 0.05);
   --island-shadow-hover: 0 1px 2px rgba(29, 29, 31, 0.04), 0 12px 30px rgba(29, 29, 31, 0.09);
   --chip-bg: rgba(29, 29, 31, 0.05);
+  /* 横向滑轨（内容比容器宽时）：轨底 + 滑块 + 悬停 */
+  --rail-track: rgba(29, 29, 31, 0.06);
+  --rail-thumb: rgba(29, 29, 31, 0.22);
+  --rail-thumb-hover: rgba(29, 29, 31, 0.36);
   /* 标签页那条栏的底色，必须是**不透明**的：栏与两块「缺口」小方块都用它，
      半透明的话方块压在栏上会合成出更亮的一块（原版那两块是写死不透明色的）。
      值 = rgba(29,29,31,.05) 压在 #fff 上的结果。 */
@@ -145,6 +149,9 @@
   --island-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
   --island-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 30px rgba(0, 0, 0, 0.55);
   --chip-bg: rgba(255, 255, 255, 0.08);
+  --rail-track: rgba(255, 255, 255, 0.07);
+  --rail-thumb: rgba(255, 255, 255, 0.24);
+  --rail-thumb-hover: rgba(255, 255, 255, 0.38);
   /* 同上：rgba(255,255,255,.08) 压在 #1d1d1f 上的结果 */
   --tabbar-bg: #2a2a2c;
   --row-hover-bg: rgba(255, 255, 255, 0.06);
@@ -338,6 +345,13 @@ a {
   pointer-events: none; /* 两岛之间的空隙不挡内容 */
 }
 
+/* 窄屏别把两座岛挤爆：flex 子项默认 min-width: auto 会拒绝收缩，
+   结果底栏比屏幕还宽、开头那几枚滑不回来（踩过）。
+   允许收缩之后，由 .dotnav 自己横向滑。 */
+.dock > * {
+  min-width: 0;
+}
+
 .dock > * {
   pointer-events: auto;
 }
@@ -352,10 +366,28 @@ a {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* safe center：项少时居中，项多到溢出时退回从头排 ——
+     普通 center 会把开头那几项裁到滚不到的地方 */
+  justify-content: safe center;
   width: 100%;
   height: 100%;
   padding: 0.41rem 0.65rem;
+  /* 底栏一排也是列表：窄屏装不下就横向滑，同样藏掉滑轨 */
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dotnav::-webkit-scrollbar {
+  display: none;
+}
+
+/* 芯片是定宽的，别让 flex 把它压扁 */
+.dotnav__link {
+  flex: none;
 }
 
 .dotnav__items {
@@ -451,7 +483,9 @@ a {
    玻璃版（.dock--glass）交给 React Bits 的 <GlassSurface />，宽高由它的 props 内联给；
    另外两版（.dock--hairline / .dock--solid）就是一个普通盒子，尺寸在这里给。 */
 .dock-island--pill {
-  flex: 0 0 auto;
+  /* 能缩：窄屏（或栏位变多）时收缩到可用宽度，由里面的 .dotnav 横向滑。
+     写死 flex-shrink: 0 会让它比屏幕还宽，开头那几枚就滑不回来了（踩过）。 */
+  flex: 0 1 auto;
   /* 宽度跟着点列走（点列长度恒定：始终恰好一枚是线），不再撑满一整条 */
   width: fit-content;
   height: var(--dock-h);
@@ -785,6 +819,23 @@ html.has-flying-w.is-w-landed .home-hero__w {
   background: var(--tabbar-bg);
   border-top-left-radius: var(--r-lg);
   border-top-right-radius: var(--r-lg);
+  /* 标签多了就横向滑：藏掉滑轨（一排标签底下横一条滚动条太吵），
+     但照样能滑、能拖、能滚轮横滚。 */
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.wtabs__bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 标签不许被压缩：宁可滑，也不要挤成一团 */
+.wtabs__bar .wtabs__tab {
+  flex: none;
 }
 
 .wtabs__tab {
@@ -865,13 +916,18 @@ html.has-flying-w.is-w-landed .home-hero__w {
 /* 三块面板叠在同一个网格格里：容器高度 = **最高**的那块，
    切页签时卡片高度不动。非活动的用 visibility 藏起来——
    它能从无障碍树里消失、里面的链接也拿不到焦点，但**仍然占位**，
-   而 display:none / hidden 会把高度塌掉（那样卡片就会跳）。 */
+   而 display:none / hidden 会把高度塌掉（那样卡片就会跳）。
+   ⚠️ 轨道写 minmax(0, 1fr)、面板再加 min-width: 0：grid 子项默认
+   min-width: auto，正文里一张宽表格/一行长代码会把**卡片**撑破，
+   而不是在卡片里横向滑（踩过）。 */
 .wtabs__panels {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .wtabs__panel {
   grid-area: 1 / 1;
+  min-width: 0;
   padding: 1.4rem var(--r-lg) var(--r-lg);
   visibility: hidden;
 }
@@ -1415,6 +1471,9 @@ html.has-flying-w.is-w-landed .home-hero__w {
   font-size: 1.06rem;
   line-height: 1.9;
   overflow-wrap: break-word;
+  /* 正文自己允许被压缩：进到任何 flex/grid 容器里都不会被宽内容撑破，
+     宽内容交给块内的滑轨去滑（见上面的 .rail-scroll 一组） */
+  min-width: 0;
 }
 
 .static-page .post-body {
@@ -1519,16 +1578,90 @@ html.has-flying-w.is-w-landed .home-hero__w {
   font-size: 0.86em;
 }
 
+/* ============================================================
+   横向滑轨
+   内容比容器宽时一律横向滑动，不挤压、不溢出。分两类：
+   · 内容块（代码 / 表格 / 行间公式）：**显示**一条细滑轨 —— 不显示的话
+     读者根本不知道右边还有内容；
+   · 控件（第二屏的标签栏、底栏那一排）：**藏掉**滑轨、照样能滑能拖，
+     一排按钮底下横一条滚动条太吵（见各自的规则）。
+   颜色是 --rail-* 一组（浅深各一套）；overscroll-behavior-x: contain
+   保证滑到头不会把整页带着左右动。
+   表格的滑轨由 markdown.js 给它套一层 .rail-scroll —— 表格设
+   display:block 会丢列宽，套一层更稳。
+   ============================================================ */
+:is(.rail-scroll, .post-body pre, .post-body .math-block, .post-body .math-tex[data-display='1']) {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ⚠️ 滑轨必须按引擎分开写：
+   标准属性（scrollbar-width / scrollbar-color）一旦写成非 auto，
+   Blink 就会**忽略 ::-webkit-scrollbar**、改用原生滑轨 ——
+   在悬浮式滚动条的平台（macOS、headless Chromium）上它平时不占位、看不见，
+   于是"有没有滑轨"在不同环境里表现不一致（实测占位 0，就是踩了这个）。
+   所以：Blink/WebKit 用伪元素自绘，Firefox 用标准属性，两边互不打架。 */
+@supports selector(::-webkit-scrollbar) {
+  :is(
+    .rail-scroll,
+    .post-body pre,
+    .post-body .math-block,
+    .post-body .math-tex[data-display='1']
+  )::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  :is(
+    .rail-scroll,
+    .post-body pre,
+    .post-body .math-block,
+    .post-body .math-tex[data-display='1']
+  )::-webkit-scrollbar-thumb {
+    background: var(--rail-thumb);
+    border-radius: var(--r-pill);
+  }
+
+  :is(
+    .rail-scroll,
+    .post-body pre,
+    .post-body .math-block,
+    .post-body .math-tex[data-display='1']
+  )::-webkit-scrollbar-track {
+    background: var(--rail-track);
+    border-radius: var(--r-pill);
+  }
+
+  :is(
+      .rail-scroll,
+      .post-body pre,
+      .post-body .math-block,
+      .post-body .math-tex[data-display='1']
+    )::-webkit-scrollbar-thumb:hover {
+    background: var(--rail-thumb-hover);
+  }
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  :is(
+    .rail-scroll,
+    .post-body pre,
+    .post-body .math-block,
+    .post-body .math-tex[data-display='1']
+  ) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rail-thumb) var(--rail-track);
+  }
+}
+
 /* 代码块 */
 .post-body pre {
   margin: 1.9em 0;
   padding: var(--r-md); /* = 圆角半径 */
   background: var(--bg-soft);
   border-radius: var(--r-md);
-  overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.75;
-  -webkit-overflow-scrolling: touch;
 }
 
 .post-body pre code {
@@ -1541,9 +1674,10 @@ html.has-flying-w.is-w-landed .home-hero__w {
   white-space: pre;
 }
 
-/* 表格 */
+/* 表格：撑到内容宽（至少占满内容栏），超出就由外层 .rail-scroll 横向滑 */
 .post-body table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   margin: 2em 0;
   border-collapse: collapse;
   font-size: 0.95em;
@@ -1564,6 +1698,128 @@ html.has-flying-w.is-w-landed .home-hero__w {
 
 .post-body tbody tr:last-child td {
   border-bottom: 0;
+}
+
+/* ============================================================
+   代码块右上角的「复制」
+   按钮的标记由 markdown.js 渲染时写进 HTML（.code-block > .code-copy + pre），
+   点击由 MarkdownBody 事件委托接管，复制完把文案换成「已复制」。
+   ============================================================ */
+.code-block {
+  position: relative;
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  padding: 0.18rem 0.6rem;
+  border: 0;
+  border-radius: var(--r-xs);
+  /* **常显**，而且用「浮起来的东西」那套材料（--surface + 发丝描边）。
+     一开始是悬停才显形 + --chip-bg 底色，两处都错：代码块底色是 --bg-soft，
+     5% 的灰压在上面等于看不见，用户直接以为没有按钮。 */
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: 0 0 0 1px var(--hairline);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.code-copy:hover {
+  color: var(--text);
+}
+
+.code-copy[data-copied='1'] {
+  color: var(--link);
+}
+
+.code-copy[data-copied='0'] {
+  color: var(--text-2);
+}
+
+/* ============================================================
+   点正文图片放大预览（见 src/components/ImageZoom.jsx）
+   盖满全屏、挂到 body 上；Esc / 点背景 / 点关闭都能关，
+   打开时锁页面滚动并给内容栏加 inert。
+   ============================================================ */
+.post-body img {
+  cursor: zoom-in;
+}
+
+.image-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: var(--backdrop);
+  backdrop-filter: blur(10px) saturate(120%);
+  cursor: zoom-out;
+  animation: image-zoom-in 0.18s var(--ease-soft);
+}
+
+@keyframes image-zoom-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.image-zoom__img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--r-md);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+.image-zoom__close {
+  position: absolute;
+  top: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+}
+
+.image-zoom__close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.image-zoom__close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* 减弱透明：去掉毛玻璃，换成足够实的不透明底 */
+@media (prefers-reduced-transparency: reduce) {
+  .image-zoom {
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-zoom {
+    animation: none;
+  }
 }
 
 .post-body hr {

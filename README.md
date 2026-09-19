@@ -261,6 +261,15 @@ frontmatter 字段说明（约定单行书写）：
 | slug    | 覆盖 URL 中的 slug；缺省用文件名   |
 | draft   | `true` 时不出现在站点上            |
 
+正文渲染出来之后，**下面这些是自动的**，写的时候不用管：
+
+| 元素 | 自动做的事 | 在哪实现 |
+| --- | --- | --- |
+| 代码块 | 语法高亮；右上角出现「复制」按钮（指针设备悬停/聚焦才显形，触摸设备常显），点了复制纯文本并把文案换成「已复制」 | `markdown.js` 写按钮标记，`MarkdownBody` 事件委托复制 |
+| 图片 | 光标变放大镜，点一下全屏预览：毛玻璃背景、Esc / 点背景 / 点右上关闭都能关，打开时锁页面滚动并给内容栏加 `inert` | `src/components/ImageZoom.jsx` |
+| 表格 | 撑到内容宽（至少占满内容栏），超出就在卡片里横向滑 | `markdown.js` 套 `.rail-scroll` + `global.css` |
+| 行间公式 | 按需加载 KaTeX，宽了同样横向滑 | `lib/math.js` + 上面的滑轨 |
+
 ## 路由
 
 | 路径                   | 页面                                        |
@@ -373,6 +382,32 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
 - 深浅色都由 `:root` / `:root[data-theme='dark']` 里的 token 控制，换色只改这两处。
 
 ## 设计规则（全局，改样式时照做）
+
+### 0）横向溢出：一律走滑轨，不许撑破容器
+
+内容比容器宽时（长代码行、宽表格、行间公式）**横向滑动**，不换行、不挤压、
+更不许把容器撑破。分两类处理：
+
+| 类别 | 有哪些 | 滑轨 | 为什么 |
+| --- | --- | --- | --- |
+| 内容块 | 代码块 `pre`、表格、行间公式 | **显示**一条 8px 细轨（`--rail-*`） | 不显示的话读者不知道右边还有内容 |
+| 控件 | 第二屏标签栏、底栏那一排 | **藏掉**滑轨（`scrollbar-width: none`），照样能滑/拖/滚 | 一排按钮底下横一条滚动条太吵 |
+
+表格的滑轨由 `markdown.js` 在渲染时套一层 `.rail-scroll`（表格自己设
+`display: block` 会丢列宽）。滑轨样式**必须按引擎分开写**：标准属性
+（`scrollbar-width` / `scrollbar-color`）一旦写成非 `auto`，Blink 就会忽略
+`::-webkit-scrollbar` 改用原生滑轨，于是"有没有滑轨"在不同平台表现不一致。
+现在用 `@supports selector(::-webkit-scrollbar)` 分流：Blink/WebKit 自绘，
+Firefox 走标准属性。
+
+**两个必须记住的坑**（都实际踩过，症状是"内容把卡片撑破"而不是"内容在卡片里滑"）：
+
+- `grid` / `flex` 子项默认 `min-width: auto`，**拒绝收缩**。所以
+  `.wtabs__panels` 的轨道写成 `minmax(0, 1fr)`、面板加 `min-width: 0`，
+  `.dock > *` 加 `min-width: 0`，`.post-body` 也加 `min-width: 0`；
+  底栏那座岛原本是 `flex: 0 0 auto`（拒绝收缩），已改成 `flex: 0 1 auto`。
+- 居中的 flex 容器**一旦溢出，开头会被裁到滚不回来的地方**。所以
+  `.dotnav` 用 `justify-content: safe center`：装得下居中，装不下退回从头排。
 
 ### 1）圆角只用这几档（对齐苹果）
 

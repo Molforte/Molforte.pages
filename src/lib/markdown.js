@@ -60,7 +60,18 @@ export function renderMarkdown(md, options = {}) {
     .replace(/\$(?!\s)([^$\n]*?[^\s$])\$(?!\d)/g, (m, tex) => mathSpan(tex, false))
 
   s = s.replace(/\uE000(\d+)\uE000/g, (m, i) => kept[+i])
-  return marked.parse(s)
+  // 两处渲染后处理（都在 MarkdownBody 里接管事件，见那个组件）：
+  //   · 表格套一层横向滑轨（不要把 display:block 加在表格上，会丢列宽）；
+  //   · 代码块包一层，右上角放「复制」按钮（图标/文案由 CSS 与组件管）。
+  return marked
+    .parse(s)
+    .replace(/<table>/g, '<div class="rail-scroll"><table>')
+    .replace(/<\/table>/g, '</table></div>')
+    .replace(
+      /<pre>/g,
+      '<div class="code-block"><button type="button" class="code-copy" aria-label="复制这段代码">复制</button><pre>',
+    )
+    .replace(/<\/pre>/g, '</pre></div>')
 }
 
 const mathSpan = (tex, display) =>
