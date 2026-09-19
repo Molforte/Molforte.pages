@@ -63,7 +63,7 @@ export function renderMarkdown(md, options = {}) {
   // 两处渲染后处理（都在 MarkdownBody 里接管事件，见那个组件）：
   //   · 表格套一层横向滑轨（不要把 display:block 加在表格上，会丢列宽）；
   //   · 代码块包一层：右上角那颗按钮的文案就是代码语言（```c → 「c」），
-  //     没写语言的退回「复制」，否则那颗按钮看起来就不是按钮。
+  //     没写语言的退回「Copy」（站里可见标签都用英文：Home / Archive / More…）。
   //   行号由 MarkdownBody 按真实行数插进去（在那儿数最准），插在卡片**外面**。
   return marked
     .parse(s)
@@ -71,10 +71,10 @@ export function renderMarkdown(md, options = {}) {
     .replace(/<\/table>/g, '</table></div>')
     .replace(/<pre><code(?: class="language-([^"]+)")?>/g, (m, lang) => {
       const cls = lang ? ` class="language-${esc(lang)}"` : ''
-      const tag = lang ? esc(lang) : '复制'
+      const tag = lang ? esc(lang) : 'Copy'
       return (
         `<div class="code-block">` +
-        `<button type="button" class="code-copy" aria-label="复制这段代码" title="复制代码">${tag}</button>` +
+        `<button type="button" class="code-copy" aria-label="Copy code" title="Copy code">${tag}</button>` +
         `<pre><code${cls}>`
       )
     })
