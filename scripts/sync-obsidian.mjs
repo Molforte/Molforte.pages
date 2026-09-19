@@ -91,6 +91,41 @@ const yaml = (v) => {
   const s = String(v)
   return /^[[\]{}:#&*!|>'"%@`]|:\s|\s$/.test(s) ? `"${s.replace(/"/g, "'")}"` : s
 }
+
+/**
+ * 去掉册首页（索引笔记）里的「目录」小节。
+ *
+ * 这些目录是 vault 索引笔记里手写的、指向各笔记 `.md` 的相对链接：
+ *   · 站内册首页下方本来就有站点生成的笔记列表（带编号、日期），重复；
+ *   · 这些相对 .md 链接在站点上是 404（站内笔记走 /notes/<册>/<笔记>）。
+ * 命中两种情况就整段删掉（删到下一个同级或更高级标题为止）：
+ *   a) 标题就是「目录 / TOC / Table of Contents / Index」；
+ *   b) 小节正文**只有指向本册笔记的链接**（一行一个那种，比如 iap-board 的
+ *      「主线」）—— 两种写法都算：vault 里的相对 `xxx.md`，以及转换后的
+ *      `{{NOTE:册/笔记}}`。外链小节（比如 components-101 的「视频链接：」）
+ *      和写了人话的小节一律保留。
+ * 只作用于索引页，笔记正文不动。
+ */
+function stripIndexToc(md) {
+  const TOC = /^(目录|目錄|toc|table of contents|index)\s*$/i
+  const NOTE_LINK = /^([-*+]\s*)?\[[^\]]+\]\(\s*(?:[^)\s]+\.md|\{\{NOTE:[^}]+\}\})\s*\)$/
+  const chunks = []
+  for (const line of String(md).split('\n')) {
+    const m = /^(#{1,6})\s+(.*)$/.exec(line)
+    if (m) chunks.push({ head: line, title: m[2].trim(), body: [] })
+    else if (chunks.length) chunks[chunks.length - 1].body.push(line)
+    else chunks.push({ head: null, title: null, body: [line] })
+  }
+  const linkOnly = (body) => {
+    const lines = body.map((l) => l.trim()).filter(Boolean)
+    return lines.length > 0 && lines.every((l) => NOTE_LINK.test(l))
+  }
+  return chunks
+    .filter((c) => !(c.title && TOC.test(c.title)) && !linkOnly(c.body))
+    .map((c) => (c.head ? [c.head, ...c.body].join('\n') : c.body.join('\n')))
+    .join('\n')
+}
+
 /** 摘要：取第一行「像人话」的正文，去掉链接语法/裸 URL/代码行，压成单行 */
 const firstParagraph = (md) => {
   for (const raw of md.split(/\r?\n/)) {
@@ -350,7 +385,8 @@ for (const v of volList) {
     ]
       .filter((x) => x !== null)
       .join('\n')
-    const full = fm + conv.body
+    const body = isIndex ? stripIndexToc(conv.body) : conv.body
+    const full = fm + body
     if (isIndex) indexFull = full
     else
       noteMeta.push({
