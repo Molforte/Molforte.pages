@@ -506,6 +506,10 @@ a {
 /* 两座岛都是定位上下文：搜索结果浮层挂在搜索岛里，靠它对齐 */
 .dock-island {
   position: relative;
+  /* 两岛互换宽度的节奏：慢一点才看得出「挤」的过程（原来 0.34s 太快） */
+  transition:
+    width 0.62s var(--ease-soft),
+    border-radius 0.62s var(--ease-soft);
 }
 
 /* —— 搜索态：两座岛互换宽度 ——
@@ -516,8 +520,8 @@ a {
    interpolate-size: allow-keywords（写在 html 上）让 fit-content 也参与过渡。 */
 .dock-island {
   transition:
-    width 0.34s var(--ease-soft),
-    border-radius 0.34s var(--ease-soft);
+    width 0.62s var(--ease-soft),
+    border-radius 0.62s var(--ease-soft);
 }
 
 .dock.is-searching .dock-island--nav {

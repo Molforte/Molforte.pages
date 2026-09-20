@@ -306,29 +306,32 @@ export default function BottomDock() {
                   onChange={(e) => setQ(e.target.value)}
                 />
               </div>
-              <div className="search-panel" ref={panelRef} role="dialog" aria-label="搜索结果">
-                {q.trim() === '' ? (
-                  <p className="search-panel__hint">输入关键词，按标题 / 标签搜索。</p>
-                ) : results.length === 0 ? (
-                  <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
-                ) : (
-                  <ul className="search-panel__list">
-                    {results.map((item, index) => (
-                      <li
-                        className="search-panel__item"
-                        key={item.key}
-                        style={{ '--i': Math.min(index, 8) }}
-                      >
-                        <Link to={item.to} onClick={close}>
-                          <time dateTime={item.date}>{formatDate(item.date)}</time>
-                          <span>{item.title}</span>
-                          {item.where && <span className="search-panel__where">{item.where}</span>}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+              {/* 输入框还是空的时候不渲染浮层 —— 别一打开就顶一个「输入关键词…」的框在那儿 */}
+              {q.trim() !== '' && (
+                <div className="search-panel" ref={panelRef} role="dialog" aria-label="搜索结果">
+                  {results.length === 0 ? (
+                    <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
+                  ) : (
+                    <ul className="search-panel__list">
+                      {results.map((item, index) => (
+                        <li
+                          className="search-panel__item"
+                          key={item.key}
+                          style={{ '--i': Math.min(index, 8) }}
+                        >
+                          <Link to={item.to} onClick={close}>
+                            <time dateTime={item.date}>{formatDate(item.date)}</time>
+                            <span>{item.title}</span>
+                            {item.where && (
+                              <span className="search-panel__where">{item.where}</span>
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <button
