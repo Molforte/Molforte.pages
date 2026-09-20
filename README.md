@@ -381,7 +381,17 @@ GitHub 返回该文件，React Router 再按真实 URL 渲染。`public/.nojekyl
   玻璃参数都在 `BottomDock.jsx` 里传：`borderRadius` / `backgroundOpacity` /
   `saturation` / `distortionScale` 等，完整 props 见组件头部注释与 React Bits 文档）；
   另外两版就是一个普通盒子，省掉 SVG 滤镜的开销，也没有它在边缘留下的那圈淡蓝纹。
-  搜索浮层样式在 `search-island` / `search-backdrop` 规则里；
+  **搜索是两座岛互换宽度**：点搜索后，导航岛缩成和原来那颗搜索圆一样大的小圆
+  （里面换成 ← 回导航），搜索圆撑成与导航岛等宽的大岛（图标不变，里面直接是
+  输入框，边打边出结果）。两边的目标宽度都取自 `--nav-w`（`BottomDock` 量出来的
+  导航岛自然宽度），所以总宽度不变 —— 看起来就是搜索岛把导航岛「挤」了下去；
+  `html { interpolate-size: allow-keywords }` 让 `fit-content` 也参与过渡
+  （Chrome 129+，不支持的浏览器瞬间切换、功能不受影响）。
+  结果浮层挂在搜索岛**内部**（岛是 `position: relative`），所以右边缘与输入岛
+  严格对齐、正好坐在底栏上方；它不再是居中的大浮层，**不遮不锁页面**，
+  Esc、点空白、点 ← 都能收起来。
+  浮层只有一座岛宽（约 300px），结果行是照这个宽度排的：日期窄、标题
+  `min-width: 0` 允许换行、窄屏（≤560px）把「来自哪一册」收掉。
   两个岛离窗口底边 26px（窄屏 20px，`.dock` 的 `bottom`）；
 - 深浅色都由 `:root` / `:root[data-theme='dark']` 里的 token 控制，换色只改这两处。
 

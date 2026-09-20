@@ -175,6 +175,10 @@ html {
   -webkit-text-size-adjust: 100%;
   /* 始终预留滚动条槽位：长短页面切换时视口宽度不变，内容/岛不会横跳 */
   scrollbar-gutter: stable;
+  /* 让 fit-content ↔ 具体长度也能过渡：搜索态里两座岛要互换宽度，
+     而导航岛平时是 fit-content（跟着点列走）。Chrome 129+ 支持；
+     不支持的浏览器直接瞬间切换，功能不受影响。 */
+  interpolate-size: allow-keywords;
 }
 
 body {
@@ -499,6 +503,61 @@ a {
   border-radius: var(--r-pill);
 }
 
+/* 两座岛都是定位上下文：搜索结果浮层挂在搜索岛里，靠它对齐 */
+.dock-island {
+  position: relative;
+}
+
+/* —— 搜索态：两座岛互换宽度 ——
+   导航岛从「跟着点列走」缩成和搜索圆一样大的小圆（里面换成 ← 回导航），
+   搜索圆撑成与导航岛原来等宽的大岛（里面直接是输入框）。
+   两边都取自 --nav-w —— BottomDock 量出来的导航岛自然宽度 —— 所以总宽度不变，
+   看起来就是搜索岛把导航岛「挤」成了一颗小圆。
+   interpolate-size: allow-keywords（写在 html 上）让 fit-content 也参与过渡。 */
+.dock-island {
+  transition:
+    width 0.34s var(--ease-soft),
+    border-radius 0.34s var(--ease-soft);
+}
+
+.dock.is-searching .dock-island--nav {
+  width: var(--dock-h);
+  overflow: hidden;
+}
+
+.dock.is-searching .dock-island--search {
+  /* 覆盖圆形的 flex: 0 0 auto：窄屏允许收缩 */
+  flex: 0 1 auto;
+  width: var(--nav-w, min(72vw, 25rem));
+}
+
+/* 缩起来的小圆里那颗「← 回导航」 */
+.dock-back {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.dock-back:hover {
+  color: var(--text);
+}
+
+.dock-back:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.dock-back svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
 /* 透明底 + 1px 发丝线 */
 .dock--hairline .dock-island {
   background: transparent;
@@ -570,23 +629,56 @@ a {
   transition: scale var(--dur-fast) ease;
 }
 
-/* —— 搜索浮层 —— */
-.search-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
+/* 搜索态里那颗大岛：放大镜（图标不变）+ 输入框 */
+.search-island--open {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 16vh 1rem 1rem;
-  background: var(--backdrop);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  animation: fade 0.15s ease both;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 1.2rem;
+  cursor: text;
 }
 
+.search-island__icon {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--text-3);
+}
+
+.search-island__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.search-island__input::placeholder {
+  color: var(--text-3);
+}
+
+/* 去掉浏览器给 type=search 加的那颗小叉与圆角 */
+.search-island__input::-webkit-search-decoration,
+.search-island__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* —— 搜索结果：浮在底栏正上方 ——
+   输入框就在底栏里，所以结果往上长；不再有居中的大浮层，
+   也不遮不锁页面（点别处或 Esc 就收起来）。宽度与输入岛一致。 */
 .search-panel {
-  width: min(92vw, 40rem);
+  position: absolute;
+  /* 相对**搜索岛**定位（岛是 position: relative）：右边缘与岛齐、坐在底栏上方。
+     不能用 .dock 的 right —— dock 是整屏宽、两岛居中，那会差出半屏。 */
+  right: 0;
+  bottom: calc(100% + 0.7rem);
+  z-index: 55;
+  width: 100%;
   /* 与底栏同一种边缘处理：环状渐变高光 */
   border: 1px solid transparent;
   background:
@@ -594,48 +686,17 @@ a {
     var(--glass-rim) border-box;
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-lg);
   box-shadow: var(--panel-shadow);
   overflow: hidden;
+  animation: search-pop 0.18s var(--ease-soft) both;
 }
 
-@keyframes fade {
+@keyframes search-pop {
   from {
     opacity: 0;
+    translate: 0 0.4rem;
   }
-  to {
-    opacity: 1;
-  }
-}
-
-.search-panel__row {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: calc(var(--r-xl) * 0.55) var(--r-xl); /* 左右 = 圆角半径 */
-  border-bottom: 1px solid var(--hairline);
-  color: var(--text-2);
-}
-
-.search-panel__row svg {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-}
-
-.search-panel__input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 1.08rem;
-  color: var(--text);
-}
-
-.search-panel__input::placeholder {
-  color: var(--text-3);
 }
 
 .search-panel__list {
@@ -650,8 +711,10 @@ a {
 .search-panel__item a {
   display: flex;
   align-items: baseline;
-  gap: 1.2rem;
-  padding: calc(var(--r-xl) * 0.35) var(--r-xl); /* 左右 = 圆角半径 */
+  gap: 0.6rem;
+  /* 浮层只有一座岛宽（~300px），行内边距跟着圆角走 --r-lg，
+     别再用面板时代的 --r-xl */
+  padding: 0.5rem var(--r-lg);
   color: var(--text);
   text-decoration: none;
 }
@@ -662,14 +725,17 @@ a {
 
 .search-panel__item time {
   flex: none;
-  width: 6rem;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
 
+/* 标题允许收缩换行 —— 不给 min-width: 0 的话在窄浮层里会一个字一行 */
 .search-panel__item span {
+  min-width: 0;
   font-weight: 500;
+  font-size: 0.94rem;
+  line-height: 1.45;
 }
 
 /* 搜索结果来自哪一册 */
@@ -677,13 +743,20 @@ a {
   flex: none;
   margin-left: auto;
   font-weight: 400;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-3);
+}
+
+/* 窄屏：浮层只有一座岛宽（两三百 px），把「来自哪一册」收掉，标题才有地方换行 */
+@media (max-width: 560px) {
+  .search-panel__where {
+    display: none;
+  }
 }
 
 .search-panel__hint {
   margin: 0;
-  padding: calc(var(--r-xl) * 0.5) var(--r-xl);
+  padding: calc(var(--r-lg) * 0.5) var(--r-lg);
   color: var(--text-3);
   font-size: 0.9rem;
 }

@@ -33,6 +33,13 @@ const ICON = {
       <path d="M15.2 15.2 20 20" />
     </>
   ),
+  // 搜索态里，导航岛缩成小圆后显示这个：「回导航」
+  back: (
+    <>
+      <path d="M19 12H5.6" />
+      <path d="M11.4 5.6 5 12l6.4 6.4" />
+    </>
+  ),
 }
 
 // 栏名平时收在芯片里（宽度 0），当前那枚撑开时才浮出来；
@@ -129,8 +136,8 @@ function useDockSurface() {
 
 /** 两个岛的外壳：玻璃那版交给 React Bits 的 <GlassSurface />，其余两版就是一个普通盒子
     （省掉 SVG 滤镜的那点开销，也没有它在边缘留下的淡蓝纹）。 */
-function Island({ surface, shape, children }) {
-  const cls = `dock-island dock-island--${shape}`
+function Island({ surface, shape, className = '', children }) {
+  const cls = `dock-island dock-island--${shape}${className ? ` ${className}` : ''}`
   if (surface === 'glass') {
     return (
       <GlassSurface
@@ -150,9 +157,11 @@ function Island({ surface, shape, children }) {
 export default function BottomDock() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
+  const [navW, setNavW] = useState(0)
   const inputRef = useRef(null)
   const panelRef = useRef(null)
   const triggerRef = useRef(null)
+  const navRef = useRef(null)
 
   const { pathname } = useLocation()
   const surface = useDockSurface()
@@ -187,153 +196,153 @@ export default function BottomDock() {
   const close = useCallback(() => {
     setOpen(false)
     setQ('')
-    // 关闭后把焦点还给触发按钮，键盘用户不失焦
+    // 关闭后把焦点还给搜索按钮，键盘用户不失焦
     requestAnimationFrame(() => triggerRef.current?.focus())
   }, [])
 
-  // 打开时：聚焦输入框、锁滚动、让背后内容 inert（不可交互/不可聚焦）
+  // 打开时聚焦输入框（不再锁滚动、也不再给背后加 inert：
+  // 输入框就在底栏里，页面该照常能滚能点）
   useEffect(() => {
     if (!open) return
     inputRef.current?.focus()
-    const prevOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-    const frame = document.querySelector('.site-frame')
-    const dock = document.querySelector('.dock')
-    frame?.setAttribute('inert', '')
-    dock?.setAttribute('inert', '')
-    return () => {
-      document.documentElement.style.overflow = prevOverflow
-      frame?.removeAttribute('inert')
-      dock?.removeAttribute('inert')
-    }
   }, [open])
 
-  // 键盘：Esc 关闭；Tab/Shift+Tab 只在浮层内循环（焦点陷阱）
+  // 量一下导航岛的「自然宽度」（含当前那枚撑开的胶囊）：搜索态里两岛要互换宽度，
+  // 于是 --nav-w 既是导航缩下去的目标，也是搜索岛撑开的目标。搜索态不量（那时它是小圆）。
+  useEffect(() => {
+    if (open) return
+    const measure = () => {
+      const el = navRef.current
+      if (!el) return
+      const w = Math.round(el.getBoundingClientRect().width)
+      if (w > 0) setNavW(w)
+    }
+    measure()
+    // 路由变化后当前胶囊会过渡着撑开，等它稳定再量一次
+    const t = setTimeout(measure, 600)
+    window.addEventListener('resize', measure)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open, pathname])
+
+  // Esc 关闭；点底栏以外的地方也关
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        close()
-        return
-      }
-      if (e.key !== 'Tab') return
-      const panel = panelRef.current
-      if (!panel) return
-      const focusables = panel.querySelectorAll(
-        'a[href], button, input, [tabindex]:not([tabindex="-1"])',
-      )
-      if (focusables.length === 0) return
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
-      const active = document.activeElement
-      const inside = panel.contains(active)
-      if (e.shiftKey) {
-        if (active === first || !inside) {
-          e.preventDefault()
-          last.focus()
-        }
-      } else if (active === last || !inside) {
-        e.preventDefault()
-        first.focus()
-      }
+      if (e.key === 'Escape') close()
+    }
+    const onDown = (e) => {
+      if (!e.target.closest?.('.dock') && !e.target.closest?.('.search-panel')) close()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('pointerdown', onDown)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('pointerdown', onDown)
+    }
   }, [open, close])
 
   return (
     <>
-      <div className={`dock dock--${surface}`}>
-        {/* 主岛：一排圆形图标芯片（样式来自 Uiverse 的 navigation-card），
-            当前那枚撑宽成一颗胶囊、把栏名浮出来（这层行为来自我们的 dotnav 版）。
-            外壳样式由 dock--hairline / dock--solid / dock--glass 决定。 */}
-        <Island surface={surface} shape="pill">
-          <nav className="dotnav" aria-label="主导航">
-            <ul className="dotnav__items">
-              {TABS.map((tab) => {
-                const active = isTabActive(tab, pathname)
-                return (
-                  <li className="dotnav__item" key={tab.to}>
-                    <NavLink
-                      to={tab.to}
-                      end={tab.end}
-                      className={`dotnav__link${active ? ' is-current' : ''}`}
-                    >
-                      <svg
-                        className={`dotnav__icon${tab.small ? ' dotnav__icon--sm' : ''}`}
-                        {...ICON_PROPS}
+      <div
+        className={`dock dock--${surface}${open ? ' is-searching' : ''}`}
+        style={navW ? { '--nav-w': `${navW}px` } : undefined}
+      >
+        {/* 主岛（导航）：搜索态里缩成和原来那颗搜索圆一样大的小圆，
+            里面换成「← 回导航」。宽度互换见 global.css 的 .dock.is-searching。 */}
+        <Island surface={surface} shape="pill" className="dock-island--nav">
+          {open ? (
+            <button type="button" className="dock-back" aria-label="返回导航" onClick={close}>
+              <svg {...ICON_PROPS}>{ICON.back}</svg>
+            </button>
+          ) : (
+            <nav className="dotnav" aria-label="主导航" ref={navRef}>
+              <ul className="dotnav__items">
+                {TABS.map((tab) => {
+                  const active = isTabActive(tab, pathname)
+                  return (
+                    <li className="dotnav__item" key={tab.to}>
+                      <NavLink
+                        to={tab.to}
+                        end={tab.end}
+                        className={`dotnav__link${active ? ' is-current' : ''}`}
                       >
-                        {tab.icon}
-                      </svg>
-                      {/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才看得见 */}
-                      <span className="dotnav__label">{tab.label}</span>
-                    </NavLink>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
+                        <svg
+                          className={`dotnav__icon${tab.small ? ' dotnav__icon--sm' : ''}`}
+                          {...ICON_PROPS}
+                        >
+                          {tab.icon}
+                        </svg>
+                        {/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才看得见 */}
+                        <span className="dotnav__label">{tab.label}</span>
+                      </NavLink>
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+          )}
         </Island>
 
-        {/* 搜索副岛：独立的圆形外壳 */}
-        <Island surface={surface} shape="circle">
-          <button
-            type="button"
-            className="search-island"
-            aria-label="搜索文章"
-            ref={triggerRef}
-            onClick={() => setOpen(true)}
-          >
-            <svg {...ICON_PROPS}>{ICON.search}</svg>
-          </button>
+        {/* 搜索岛：平时是一颗圆按钮（图标不变）；搜索态撑成与导航岛等宽的大岛，
+            里面直接就是输入框 —— 边打边出结果。
+            结果浮层挂在这座岛里面（岛是定位上下文），右边缘自然对齐。 */}
+        <Island surface={surface} shape="circle" className="dock-island--search">
+          {open ? (
+            <>
+              <div className="search-island search-island--open">
+                <svg className="search-island__icon" {...ICON_PROPS}>
+                  {ICON.search}
+                </svg>
+                <input
+                  ref={inputRef}
+                  className="search-island__input"
+                  type="search"
+                  placeholder="搜索标题或标签…"
+                  aria-label="搜索标题或标签"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
+              <div className="search-panel" ref={panelRef} role="dialog" aria-label="搜索结果">
+                {q.trim() === '' ? (
+                  <p className="search-panel__hint">输入关键词，按标题 / 标签搜索。</p>
+                ) : results.length === 0 ? (
+                  <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
+                ) : (
+                  <ul className="search-panel__list">
+                    {results.map((item, index) => (
+                      <li
+                        className="search-panel__item"
+                        key={item.key}
+                        style={{ '--i': Math.min(index, 8) }}
+                      >
+                        <Link to={item.to} onClick={close}>
+                          <time dateTime={item.date}>{formatDate(item.date)}</time>
+                          <span>{item.title}</span>
+                          {item.where && <span className="search-panel__where">{item.where}</span>}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="search-island"
+              aria-label="搜索文章"
+              ref={triggerRef}
+              onClick={() => setOpen(true)}
+            >
+              <svg {...ICON_PROPS}>{ICON.search}</svg>
+            </button>
+          )}
         </Island>
       </div>
-
-      {open && (
-        <div
-          className="search-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-label="搜索文章"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) close()
-          }}
-        >
-          <div className="search-panel" ref={panelRef}>
-            <div className="search-panel__row">
-              <svg {...ICON_PROPS}>{ICON.search}</svg>
-              <input
-                ref={inputRef}
-                className="search-panel__input"
-                placeholder="搜索标题或标签…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </div>
-            {q.trim() === '' ? (
-              <p className="search-panel__hint">输入关键词，按标题 / 标签搜索。</p>
-            ) : results.length === 0 ? (
-              <p className="search-panel__hint">没有找到与“{q.trim()}”相关的文章。</p>
-            ) : (
-              <ul className="search-panel__list">
-                {results.map((item, index) => (
-                  <li
-                    className="search-panel__item"
-                    key={item.key}
-                    style={{ '--i': Math.min(index, 8) }}
-                  >
-                    <Link to={item.to} onClick={close}>
-                      <time dateTime={item.date}>{formatDate(item.date)}</time>
-                      <span>{item.title}</span>
-                      {item.where && <span className="search-panel__where">{item.where}</span>}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
     </>
   )
 }
