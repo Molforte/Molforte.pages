@@ -208,7 +208,9 @@ export default function BottomDock() {
   }, [open])
 
   // 量一下导航岛的「自然宽度」（含当前那枚撑开的胶囊）：搜索态里两岛要互换宽度，
-  // 于是 --nav-w 既是导航缩下去的目标，也是搜索岛撑开的目标。搜索态不量（那时它是小圆）。
+  // 于是 --nav-w 既是导航缩下去的目标，也是搜索岛撑开的目标。
+  // ⚠️ 必须等宽度过渡结束再量：关掉搜索的那一瞬间导航岛还停在 64px，
+  // 这时候量会把 --nav-w 污染成 64，回不去了（踩过）。所以只延迟量、不做即时量。
   useEffect(() => {
     if (open) return
     const measure = () => {
@@ -217,9 +219,7 @@ export default function BottomDock() {
       const w = Math.round(el.getBoundingClientRect().width)
       if (w > 0) setNavW(w)
     }
-    measure()
-    // 路由变化后当前胶囊会过渡着撑开，等它稳定再量一次
-    const t = setTimeout(measure, 600)
+    const t = setTimeout(measure, 750) // > 过渡时长 0.62s
     window.addEventListener('resize', measure)
     return () => {
       clearTimeout(t)

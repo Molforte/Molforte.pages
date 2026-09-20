@@ -529,6 +529,14 @@ a {
   overflow: hidden;
 }
 
+/* 导航岛平时也写**具体宽度**（BottomDock 量出来的 --nav-w），不用 fit-content：
+   fit-content 的内容一换（导航芯片 ↔ ← 按钮）宽度会当场塌成 ~47px，
+   过渡的起点跟着塌 —— 结果是「开」瞬间跳、「关」才平滑，两个方向看着不一样。
+   两边都是长度就对称了。（--nav-w 还没量出来时先退回 fit-content。） */
+.dock-island--nav {
+  width: var(--nav-w, fit-content);
+}
+
 .dock.is-searching .dock-island--search {
   /* 覆盖圆形的 flex: 0 0 auto：窄屏允许收缩 */
   flex: 0 1 auto;
