@@ -250,40 +250,39 @@ export default function BottomDock() {
         className={`dock dock--${surface}${open ? ' is-searching' : ''}`}
         style={navW ? { '--nav-w': `${navW}px` } : undefined}
       >
-        {/* 主岛（导航）：搜索态里缩成和原来那颗搜索圆一样大的小圆，
-            里面换成「← 回导航」。宽度互换见 global.css 的 .dock.is-searching。 */}
+        {/* 主岛（导航）：搜索态里缩成和原来那颗搜索圆一样大的小圆，里面换成「← 回导航」。
+            导航芯片与 ← **都常驻**，显隐交给 CSS —— 否则点下去内容立刻换掉，
+            居中的 ← 会先出现在还没缩小的岛正中间，看着像"从中间展开"而不是被挤（踩过）。
+            ← 靠左钉住（宽 = 一颗圆），缩小过程中它在左端，复位后正好居中在小圆里。 */}
         <Island surface={surface} shape="pill" className="dock-island--nav">
-          {open ? (
-            <button type="button" className="dock-back" aria-label="返回导航" onClick={close}>
-              <svg {...ICON_PROPS}>{ICON.back}</svg>
-            </button>
-          ) : (
-            <nav className="dotnav" aria-label="主导航" ref={navRef}>
-              <ul className="dotnav__items">
-                {TABS.map((tab) => {
-                  const active = isTabActive(tab, pathname)
-                  return (
-                    <li className="dotnav__item" key={tab.to}>
-                      <NavLink
-                        to={tab.to}
-                        end={tab.end}
-                        className={`dotnav__link${active ? ' is-current' : ''}`}
+          <nav className="dotnav" aria-label="主导航" ref={navRef}>
+            <ul className="dotnav__items">
+              {TABS.map((tab) => {
+                const active = isTabActive(tab, pathname)
+                return (
+                  <li className="dotnav__item" key={tab.to}>
+                    <NavLink
+                      to={tab.to}
+                      end={tab.end}
+                      className={`dotnav__link${active ? ' is-current' : ''}`}
+                    >
+                      <svg
+                        className={`dotnav__icon${tab.small ? ' dotnav__icon--sm' : ''}`}
+                        {...ICON_PROPS}
                       >
-                        <svg
-                          className={`dotnav__icon${tab.small ? ' dotnav__icon--sm' : ''}`}
-                          {...ICON_PROPS}
-                        >
-                          {tab.icon}
-                        </svg>
-                        {/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才看得见 */}
-                        <span className="dotnav__label">{tab.label}</span>
-                      </NavLink>
-                    </li>
-                  )
-                })}
-              </ul>
-            </nav>
-          )}
+                        {tab.icon}
+                      </svg>
+                      {/* 栏名平时宽度为 0 收在芯片里，当前那枚撑开时才看得见 */}
+                      <span className="dotnav__label">{tab.label}</span>
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+          <button type="button" className="dock-back" aria-label="返回导航" onClick={close}>
+            <svg {...ICON_PROPS}>{ICON.back}</svg>
+          </button>
         </Island>
 
         {/* 搜索岛：平时是一颗圆按钮（图标不变）；搜索态撑成与导航岛等宽的大岛，

@@ -367,6 +367,7 @@ a {
    内边距比原样式收紧了一档（原来 15px 20px，现在 7px 11px），
    让外框到芯片的距离更近；圆角仍用全站的 --r-pill。 */
 .dotnav {
+  transition: opacity 0.18s ease;
   position: relative;
   display: flex;
   align-items: center;
@@ -535,6 +536,7 @@ a {
    两边都是长度就对称了。（--nav-w 还没量出来时先退回 fit-content。） */
 .dock-island--nav {
   width: var(--nav-w, fit-content);
+  overflow: hidden;
 }
 
 .dock.is-searching .dock-island--search {
@@ -543,17 +545,39 @@ a {
   width: var(--nav-w, min(72vw, 25rem));
 }
 
-/* 缩起来的小圆里那颗「← 回导航」 */
+/* 缩起来的小圆里那颗「← 回导航」。
+   靠左钉住、宽 = 一颗圆，并且等导航岛缩得差不多了才淡入 ——
+   这样缩小过程中它是"从左边露出来"，而不是先出现在大岛正中间。 */
 .dock-back {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: grid;
   place-items: center;
-  width: 100%;
+  width: var(--dock-h);
   height: 100%;
   border: 0;
   background: transparent;
   color: var(--text-2);
   cursor: pointer;
-  transition: color 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease 0.46s,
+    color 0.15s ease,
+    visibility 0s linear 0.46s;
+}
+
+.dock.is-searching .dock-back {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 导航芯片在缩小过程中**留在原地被裁**（岛是 overflow: hidden），
+   这才是"被挤"的观感；等缩完再撤掉，别跟 ← 抢位子。 */
+.dock.is-searching .dotnav {
+  opacity: 0;
+  transition: opacity 0.18s ease 0.42s;
 }
 
 .dock-back:hover {
