@@ -633,14 +633,15 @@ a {
   transition: scale var(--dur-fast) ease;
 }
 
-/* 搜索态里那颗大岛：放大镜（图标不变）+ 输入框 */
+/* 搜索态里那颗大岛：输入框 + 放大镜（图标不变，且钉在最右） */
 .search-island--open {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   width: 100%;
   height: 100%;
-  padding: 0 1.2rem;
+  /* 右边距 ≈ 圆按钮里图标居中时的那段距离，所以展开前后图标几乎不移动 */
+  padding: 0 1.3rem 0 1.4rem;
   cursor: text;
 }
 

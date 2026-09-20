@@ -292,10 +292,12 @@ export default function BottomDock() {
         <Island surface={surface} shape="circle" className="dock-island--search">
           {open ? (
             <>
-              <div className="search-island search-island--open">
-                <svg className="search-island__icon" {...ICON_PROPS}>
-                  {ICON.search}
-                </svg>
+              {/* 输入框在前、放大镜在最后：图标留在最右，和收起时那颗圆按钮同一个位置，
+                  岛往左长（点岛内任何地方都聚焦到输入框） */}
+              <div
+                className="search-island search-island--open"
+                onClick={() => inputRef.current?.focus()}
+              >
                 <input
                   ref={inputRef}
                   className="search-island__input"
@@ -305,6 +307,9 @@ export default function BottomDock() {
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                 />
+                <svg className="search-island__icon" {...ICON_PROPS}>
+                  {ICON.search}
+                </svg>
               </div>
               {/* 输入框还是空的时候不渲染浮层 —— 别一打开就顶一个「输入关键词…」的框在那儿 */}
               {q.trim() !== '' && (
