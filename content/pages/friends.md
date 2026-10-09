@@ -10,6 +10,7 @@ title: 友链
 - [哈康](https://hconzlvra.top/)
 - [Arcadia](https://www.arcadia.moe/)
 - [Bfladderbean](https://bfladderbean.me)
+- [Twisuki](https://www.twis.uk/)
 
 ## 好用的网站
 
